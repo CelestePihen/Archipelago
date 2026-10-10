@@ -633,38 +633,43 @@ class ImportantEarlyItems(Toggle):
     default = True
 
 
-class WorldsUnlocks(Choice):
+class WorldUnlock(Choice):
     """
+    Seperate : most worlds req 2 items to unlock
+    single : all worlds are unlocked with a single item
 
     """
     display_name = "Worlds Unlocks"
 
     option_separate = 1
-    #option_single =  3
-    #option_progressive = 5
-    #option_unlocked = 7
+    option_single =  3
+    option_progressive = 5
+    option_unlocked = 7
 
     default = option_separate
-    visibility = Visibility.none
 
-class LevelsUnlocks(Choice):
+
+class LevelUnlock(Choice):
     """
     How levels are unlocked in game
+    Vanilla = levels are unlocked like vanilla
+    All_unlocked = YOu start with access to all levels in your world
     """
     display_name = "Levels Unlocks"
     option_vanilla = 1
-    #option_all_unlocked = 3
+    option_all_unlocked = 3
     #option_requires_item = 5
 
     default = option_vanilla
-    visibility = Visibility.none
 
 class RemoveWorlds(OptionSet):
     """
     If you enter a world here they will be completly removed from the seed,
     They wont have a level item and they will not be able to be unlocked
-    Useful if you want a smaller multiworld
+    Useful if you want a smaller multi-world
     """
+    visibility = Visibility.none
+
 
 
 @dataclass
@@ -704,8 +709,8 @@ class NSMBWOptions(PerGameCommonOptions):
     starcoin_shop_multiplier : StarCoinShopMultiplier
     world_comp_priority : WorldCompPriority
     important_early_items : ImportantEarlyItems
-    worlds_unlocks : WorldsUnlocks
-    levels_unlocks : LevelsUnlocks
+    world_unlock : WorldUnlock
+    level_unlock : LevelUnlock
     remove_worlds : RemoveWorlds
 
     amount_support_received : AmountSupportReceived
@@ -730,12 +735,12 @@ class NSMBWOptions(PerGameCommonOptions):
 
     enemy_shuffle : EnemyShuffle
     use_riivolution : UseRiivolution
-    music_shuffle_riivolution : MusicShuffle
-    background_shuffle_riivolution : BackgroundShuffle
-    pallet_shuffle_riivolution : PalletShuffle
-    tile_sheet_shuffle_riivolution : TileSheetShuffle
+    music_shuffle : MusicShuffle
+    background_shuffle : BackgroundShuffle
+    pallet_shuffle : PalletShuffle
+    tile_sheet_shuffle : TileSheetShuffle
 
-    level_shuffle_riivolution : LevelShuffle
+    level_shuffle : LevelShuffle
     level_shuffle_boss_lock : LevelShuffleBossLock
     level_shuffle_plando : LevelShufflePlando
     level_shuffle_remove : LevelShuffleRemove
@@ -842,8 +847,8 @@ option_groups = [
             SaveStateSlot,
             StarCoinShopMultiplier,
             ImportantEarlyItems,
-            WorldsUnlocks,
-            LevelsUnlocks,
+            WorldUnlock,
+            LevelUnlock,
         ],
     ),
 ]
@@ -888,7 +893,7 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
         raise OptionError(f"(NSMBW generation error) You need to turn on more locations for NSBMW for it to be able to generate"
                           f"you have approximate {loc} locations, {itm} items, margin {itm-loc}")
 
-    if (Utils.get_settings()["nsmbw_settings"].allow_gen_impactful_settings == False) and (len(world.multiworld.player_ids) >= 2):
+    if (Utils.get_settings()["nsmbw_settings"].allow_gen_impactful_settings == False) :#and (len(world.multiworld.player_ids) >= 2):
         if world.options.include_inventory_powerups.value > 100:
             raise OptionError(f"(NSMBW generation error) You have more than 100 inventory powerup locations which is many and is locked by settings,"
                                   f"if you still wish to use this, enable allow_gen_impactful_settings in your host.yaml")
@@ -900,6 +905,10 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
 
         if world.options.red_coin_ring.value or world.options.oneups_sanity.value or world.options.nintynine_coin_sanity.value or world.options.roulet_block.value or world.options.block_sanity.value:
             raise OptionError("(NSMBW generation error) You have enabled a secret setting (that doesnt have logic) without allow_gen_impactful_settings in host.yaml, turn them of or enable it")
+
+        if world.options.level_completion.value == LevelCompletion.option_false:
+            raise OptionError("(NSMBW generation error) NSMBW has a lot of trubbel generating with LevelCompletion off, turn it on or enable `allow_gen_impactful_settings` in host.yaml")
+
 
     MAX_ALLOWED_BOWSER_SC = 231-7
     if world.options.bowser_star_unlock.value > MAX_ALLOWED_BOWSER_SC:
@@ -925,17 +934,17 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
 
 
     if (world.options.use_riivolution.value == False):
-        if (world.options.level_shuffle_riivolution.value or world.options.music_shuffle_riivolution.value or
-            world.options.background_shuffle_riivolution.value or world.options.pallet_shuffle_riivolution.value or
-            world.options.tile_sheet_shuffle_riivolution.value or world.options.roulet_block.value):
+        if (world.options.level_shuffle.value or world.options.music_shuffle.value or
+            world.options.background_shuffle.value or world.options.pallet_shuffle.value or
+            world.options.tile_sheet_shuffle.value or world.options.roulet_block.value):
             raise OptionError(f"(NSMBW generation error) Cannot use an option that require riivolution patch without it being enabled")
 
     if world.options.alternative_goal.value == AlternativeGoal.option_hintmovies:
         if not world.options.hint_movie_sanity.value:
             raise OptionError(f"(NSMBW generation error) hint_movie_sanity needs to be enabled for alternative goal hint_movies")
 
-    if world.options.hint_movie_sanity.value and world.options.level_shuffle_riivolution.value:
-        raise OptionError(f"(NSMBW generation error) Due to a bug hint_movie_sanity and level_shuffle_riivolution can not both be enabled")
+    if world.options.hint_movie_sanity.value and world.options.level_shuffle.value:
+        raise OptionError(f"(NSMBW generation error) Due to a bug hint_movie_sanity and level_shuffle can not both be enabled")
 
     world.options.starcoin_requirement_world_unlock.value[str(world.options.starting_world.value)] = 0
     for world_num in range(1,9+1):
@@ -948,3 +957,10 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
 
     if world.options.block_sanity.value in [BlockSanity.option_powerup_blocks or BlockSanity.option_brick_blocks]:
         raise OptionError("(NSMBW generation error) block_sanity does not currently support your enabled mode")
+
+
+    if world.options.entrance_randomizer.value == EntranceRandomizer.option_on:
+        if world.options.level_unlock.value != LevelUnlock.option_all_unlocked:
+            world.options.level_unlock.value = LevelUnlock.option_all_unlocked
+            print("(NSMBW generation warning) entrance_randomizer require level_unlock set to all_unlocked")
+

@@ -177,6 +177,8 @@ class MemoryAddresses(object):
         self.custom_enterence_pointer = custom_base  + 4 * 8
         self.custom_enterence_processes = custom_base  + 4 * 9
         self.custom_peach_castle_starcoin = custom_base  + 4 * 10
+        self.custom_world_second_half_unlock = custom_base  + 4 * 11
+        self.level_unlock_type              = custom_base + 4 * 12
 
 
 

@@ -2,9 +2,11 @@
 ## Main developer
 - [Miiroun](https://github.com/Miiroun) : Coded apworld, client and patches.
 
+## Main logic designer
+- [React](https://github.com/ReactJacob) : Developed most of logic.
+
 
 ## Others that helped
-- [React](https://github.com/ReactJacob) : Created most of logic
 - Sponk : Created 3d model of star coin merged with archipelago logo and boss key model
 - CrazyJoe : Created the custom title screen
 - Matgamer2575 : started project and found some memory addresses
@@ -20,14 +22,15 @@
 - [Archipelago](https://discord.gg/archipelago) dc server (worlddev help and documentation)
 - [Horizon](https://discord.gg/Quvaj2Ufhb) and [NSMBW Hacking Depot](https://discord.gg/nXgyHrMyjA) discord servers (knowledge about the game)
 
+## Licences
 
-# NSMBW_logo:
+### NSMBW_logo:
 - Image by miiroun
 - Remixed of archipelago logo by Krista Corkos and Christopher Wilson, licensed under [Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/)
 - Based on star coins in mario, made by nintendo
 
 
-# Community projects used
+### Community projects used
 - [Archipelago](https://archipelago.gg/)
 - [Dolphin emulator](https://dolphin-emu.org/)
 - [Dolphin memory engine (python lib)](https://github.com/randovania/py-dolphin-memory-engine)
@@ -41,15 +44,14 @@
 - [NSMBW Symbol map](https://rootcubed.dev/nsmbw-symbols/)
 
 
-
-## AP projects based on 
+### AP projects based on 
 (have borrowed some code from the following ap-games, licenced under MIT)
 - [APquest](https://github.com/ArchipelagoMW/Archipelago/tree/main/worlds/apquest)
 - [Metroid Prime](https://github.com/Electro1512/MetroidAPrime/tree/main)
 - [Mario kart Wii](https://github.com/toent/Archipelago-MKWii)
 
 
-## NSMBW projects used / taken inspiration from
+### NSMBW projects used / taken inspiration from
 - [wii-code-tools](https://github.com/RoadrunnerWMC/wii-code-tools/tree/master)
 - [Kamek (NSMBW compiler)](https://github.com/Treeki/Kamek)
 - [Propeller parts](https://github.com/PropelParts-org/PropelParts)
@@ -58,33 +60,7 @@
 - [NSMBW randomizer (original, non ap)](https://hbrohei.github.io/NSMRWii/)
 
 
-## Original game
-- Nintendo
-
-## NSMBW AI Usage Disclosure
-- NSMBW is not vibe-coded.
-- NSMBW does not contain AI art.
-However, generative AI have been used for the following in this project:
-1) As a linter (line completer)
-2) To help with decompiling source code (unsuccessfully) (~ 10 lines of code, heavily modified by human afterward)
-3) Small PR have been made by IndyGibb using Caude, they have been thoroughly reviewed by humans ( ~ 50 lines of code, later modified by human)
-
-
-## AI-usage
-Gemini & ChatGPT 
-  - decoding assembly and reading address maps (very minor usage, they are not good at this)
-
-Pycharm linter
-  - linter, a line completion tool built into py-charm (extensive usage)
-
-Claude
-  - Small PR have been made by IndyGibb using claude, they have been thoroughly reviewed by humans
-
-
-NSMBW Client and AP-world are both licenced under MIT with copyright by miiroun.
-
-
-## Libraries licensed under MIT bundled with this client
+### Other open source software bundled with the client
 - [Archipelago](https://github.com/ArchipelagoMW/Archipelago)
 - [Keyboard (Python library)](https://github.com/boppreh/keyboard)
 - [wii-code-tools](https://github.com/RoadrunnerWMC/wii-code-tools/tree/master)
@@ -95,3 +71,28 @@ NSMBW Client and AP-world are both licenced under MIT with copyright by miiroun.
 - [Universal tracker](https://github.com/FarisTheAncient/Archipelago)
 
 Licenses can be found [here](../dev_files/Licences).
+NSMBW Client and AP-world are both licenced under MIT with copyright by miiroun.
+
+
+
+## Original game
+Nintendo
+
+## NSMBW AI Usage Disclosure
+- NSMBW is not vibe-coded.
+- NSMBW does not contain AI art.
+However, generative AI have been used for the following in this project:
+1) As a linter (line completer)
+2) To help with decompiling source code (unsuccessfully) (~ 10 lines of code, heavily modified by human afterward)
+3) Small PR have been made by IndyGibb using Caude, they have been thoroughly reviewed by humans ( ~ 50 lines of code, later modified by human)
+
+
+## Specific AI-usage
+Gemini & ChatGPT 
+  - decoding assembly and reading address maps (very minor usage, they are not good at this)
+
+Pycharm linter
+  - linter, a line completion tool built into py-charm (extensive usage)
+
+Claude
+  - Small PR have been made by IndyGibb using claude, they have been thoroughly reviewed by humans

@@ -639,6 +639,7 @@ class NSMBWInterface(object):
 
     async def patch_runtime_on_load(self):
         self.apply_patch(self.memory_addresses.patches)
+        self.set_level_unlock_type(self.slot_data["level_unlock"])
 
     def get_world_level_num_in_level(self) -> Tuple[int, int]:
         if not self.is_in_level():
@@ -949,6 +950,14 @@ class NSMBWInterface(object):
     def set_peach_castle_sc(self, num : int):
         address = self.memory_addresses.custom_peach_castle_starcoin
         self.dolphin_client.write_address(address, int_to_bytes(num, 4))
+
+    def set_world_second_half_unlock(self, value : bytes):
+        address = self.memory_addresses.custom_world_second_half_unlock
+        self.dolphin_client.write_address(address, value)
+
+    def set_level_unlock_type(self, value : int):
+        address = self.memory_addresses.level_unlock_type
+        self.dolphin_client.write_address(address,  int_to_bytes(value, 4))
 
     def update_check_sum(self):
         # didnt manage to make this one work

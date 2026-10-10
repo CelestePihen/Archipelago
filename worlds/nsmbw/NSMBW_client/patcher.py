@@ -359,22 +359,22 @@ class Patcher:
 
 # need to read and modify name of arc files
     def create_riivolution_patch(self):
-        if self.slot_data["level_shuffle_riivolution"]:
+        if self.slot_data["level_shuffle"]:
             self.patch_levels()
-        if self.slot_data["background_shuffle_riivolution"]:
+        if self.slot_data["background_shuffle"]:
             folder_name = "Object"
             # these does not work because they need brres handling, I would prefer not to write it
             #self.patch_subfolder(folder_name, "bgA", True)
             #self.patch_subfolder(folder_name, "bgB", True)
 
-        if self.slot_data["tile_sheet_shuffle_riivolution"]:
+        if self.slot_data["tile_sheet_shuffle"]:
             folder_name = os.path.join("Stage", "Texture")
             self.patch_subfolder(folder_name, "Pa0", True)
             #self.patch_subfolder(folder_name, "Pa1", True) # one of these are broken, but looks to weird to keep
             #self.patch_subfolder(folder_name, "Pa2", True)
             #self.patch_subfolder(folder_name, "Pa3", True)
 
-        if self.slot_data["pallet_shuffle_riivolution"]:
+        if self.slot_data["pallet_shuffle"]:
             pass
             folder_name = os.path.join("Stage", "Texture")
             #self.recolor_tilest_folder(folder_name, "Pa0")
@@ -384,7 +384,7 @@ class Patcher:
 
 
 
-        if self.slot_data["music_shuffle_riivolution"]:
+        if self.slot_data["music_shuffle"]:
             folder_name = os.path.join("Sound", "stream")
             temp_path = self.temp_dir / "files" / folder_name
             file_names: List[str] = os.listdir(temp_path)
@@ -513,6 +513,10 @@ class Patcher:
         ET.SubElement(_patch, "file", {"external" : "Layout/openingTitle.arc", "disc" : r"/TW/Layout/openingTitle/openingTitle.arc"})
         ET.SubElement(_patch, "file", {"external" : "Layout/openingTitle.arc", "disc" : r"/US/Layout/openingTitle/openingTitle.arc"})
 
+        # Worldmap folder : for RouteInfo.arc
+        ET.SubElement(_patch, "folder", {"external" : fr"WorldMap/", "disc":fr"/WorldMap", "create":"true"})
+
+
         # external save
         ET.SubElement(_patch, "savegame", {"external" : f"/AP_nsmbw_saves/{self.name}", "clone" : "false"})
 
@@ -634,15 +638,17 @@ if __name__ == "__main__":
     _seed = "0123456789"
     level_order = list(range(sum(LEVELS_PER_WORLD)))
     random.shuffle(level_order)
-    _slot_data = { "level_shuffle_riivolution" : 0,
-                   "music_shuffle_riivolution" : 1,
+    _slot_data = { "level_shuffle" : 0,
+                   "music_shuffle" : 1,
                    "shuffled_level_order" : level_order,
-                   "background_shuffle_riivolution" : 0,
-                   "pallet_shuffle_riivolution" : 0,
-                   "tile_sheet_shuffle_riivolution" : 1,
+                   "background_shuffle" : 0,
+                   "pallet_shuffle" : 0,
+                   "tile_sheet_shuffle" : 1,
                    "entrance_randomizer" : 0,
                    }
     _patcher = Patcher(_name, _seed, _slot_data)
+
+    subprocess.run([Path(__file__).parent/"riivolution_patch" / "Kamek-Ninja-Template" / "config_and_build.bat"], cwd = Path(__file__).parent/"riivolution_patch" / "Kamek-Ninja-Template")
 
     if _patcher.output_path.exists():
         shutil.rmtree(_patcher.output_path)

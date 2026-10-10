@@ -209,8 +209,10 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         """
         Returns the amount of star coin items sent to client.
         """
-        logger.info(
-            f"Star coin count: {self.ctx.starcoin_count} out of {self.ctx.slot_data['bowser_star_unlock']} for unlocking bowser")
+        if self.ctx.username is None:
+            logger.info(f"Not connecterd")
+            return
+        logger.info(f"Star coin count: {self.ctx.starcoin_count} out of {self.ctx.slot_data['bowser_star_unlock']} for unlocking bowser")
 
     def _cmd_worlds_unlocked(self):
         """
@@ -225,6 +227,9 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         """
         Returns the amount of worlds that are considered completed.
         """
+        if self.ctx.username is None:
+            logger.info(f"Not connecterd")
+            return
         completed_worlds = sum(
             [(name_world_clear(world_num) in self.ctx.completed_levels) for world_num in range(1, 7 + 1)])
         logger.info(f"You have completed {completed_worlds} / {self.ctx.slot_data['bowser_world_unlock']} worlds.")
@@ -447,14 +452,14 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         logger.info(f"You have collected {coins} out of {req}")
 
     # if Utils.get_settings()["nsmbw_settings"].debug_mode:
-    def _cmd_WhatIs(self, name):
+    def _cmd_whatis(self, name):
         """Prints where a location has been rando to"""
         world_num, level_num = base_bijection(name)
         randod_world_num1, randod_level_num1 = locations.pos_to_level_name(
             self.ctx.slot_data["shuffled_level_order"][locations.level_name_to_pos(world_num, level_num)])
         logger.info(f"{name_base(randod_world_num1, randod_level_num1)}")
 
-    def _cmd_WhereIs(self, name):
+    def _cmd_whereis(self, name):
         """Prints where a location has been rando from"""
         world_num, level_num = base_bijection(name)
         _index = self.ctx.slot_data["shuffled_level_order"].index(locations.level_name_to_pos(world_num, level_num))
@@ -495,6 +500,41 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
 
     def _cmd_versions(self):
         """Prints out a few diffrent versions that is useful to know"""
+        if is_windows:
+            import ctypes
+
+            # code from https://sjohannes.wordpress.com/2012/03/23/win32-python-getting-all-window-titles/
+            EnumWindows = ctypes.windll.user32.EnumWindows
+            EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int),
+                                                 ctypes.POINTER(ctypes.c_int))
+            GetWindowText = ctypes.windll.user32.GetWindowTextW
+            GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
+            IsWindowVisible = ctypes.windll.user32.IsWindowVisible
+
+            titles = []
+
+            def foreach_window(hwnd, lParam):
+                if IsWindowVisible(hwnd):
+                    length = GetWindowTextLength(hwnd)
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    GetWindowText(hwnd, buff, length + 1)
+                    titles.append(buff.value)
+                return True
+
+            EnumWindows(EnumWindowsProc(foreach_window), 0)
+
+            #print(titles)
+            titles : List[str] = list(titles)
+
+            dolphin_version = [title for title in titles
+                               if title.startswith("Dolphin")]
+            if len(dolphin_version) == 0:
+                dolphin_version = "Dolphin not detected"
+            elif len(dolphin_version) == 1:
+                dolphin_version = dolphin_version[0]
+        else:
+            dolphin_version = "not able to collect on this this OS"
+
         logger.info(
             f"OS                        : {sys.platform}\n"
             f"NSMBWAP Client version    : {self.ctx.manifest_version}\n"
@@ -505,6 +545,7 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
             f"Generator version         : {self.ctx.generator_version}\n"
             f"Game version              : {self.ctx.game_interface.current_game if self.ctx.game_interface.memory_addresses is not None else 'Dolphin not connected'}\n"
             f"Game revision             : {self.ctx.game_interface.game_rev if self.ctx.game_interface.memory_addresses is not None else 'Dolphin not connected'}\n"
+            f"Dolphin versions          : {dolphin_version}\n"
         )
 
     def _cmd_get_error(self):

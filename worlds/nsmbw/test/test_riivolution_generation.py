@@ -9,8 +9,8 @@ class TestLevelShuffle(NSMBWTestBase):
         "randomize_powerups": RandomizePowerups.option_on,
         "starting_world" : 1,
         "use_riivolution" : True,
-        "level_shuffle_riivolution" : True,
-        "music_shuffel_riivolution" : True,
+        "level_shuffle" : True,
+        "music_shuffle" : True,
     }
 
 class TestLevelShufflePlando(NSMBWTestBase):
@@ -19,8 +19,8 @@ class TestLevelShufflePlando(NSMBWTestBase):
         "randomize_powerups": RandomizePowerups.option_on,
         "starting_world" : 1,
         "use_riivolution" : True,
-        "level_shuffle_riivolution" : True,
-        "music_shuffel_riivolution" : True,
+        "level_shuffle" : True,
+        "music_shuffle" : True,
         "level_shuffle_plando" : {
             "1-1" : "1-1",
             "1-2" : "C-1",
@@ -37,8 +37,8 @@ class TestLevelShuffleOff(NSMBWTestBase):
         "randomize_powerups": RandomizePowerups.option_on,
         "starting_world" : 1,
         "use_riivolution" : True,
-        "level_shuffle_riivolution" : False,
-        "music_shuffel_riivolution" : True,
+        "level_shuffle" : False,
+        "music_shuffle" : True,
     }
 
     def test_bijection(self) -> None:

@@ -222,7 +222,7 @@ class NSMBWworld(World):
         if not is_ut:
             shuffle_level_order(world)
 
-            if world.options.level_shuffle_riivolution.value == True:
+            if world.options.level_shuffle.value == True:
                 i = 0
 
                 beatable = False

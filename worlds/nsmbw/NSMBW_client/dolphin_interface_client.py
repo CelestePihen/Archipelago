@@ -1,4 +1,5 @@
 import os
+import time
 from logging import Logger
 from time import sleep
 from typing import Any
@@ -66,6 +67,7 @@ Dolphin Connection error, following these debug tips, in this order:
       12) Post your error in the NSMBW discord, with a screenshot and your log file.
 """)
             logger.info(error_mess)
+            time.sleep(3)
             raise DolphinException("Could not connect to Dolphin")
 
     def disconnect(self):

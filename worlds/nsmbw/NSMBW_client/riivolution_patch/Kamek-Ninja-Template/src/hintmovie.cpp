@@ -2,13 +2,25 @@
 #include <kamek_sdk.h>
 
 
-kmBranchDefCpp(0x80792f50, 0x80792fe8, void, volatile u8 param_1)
+kmBranchDefCpp(0x80792f50, 0x80792fe8, void, int param_1)
 {
-    volatile u8 amount = *(volatile u8*)0x80BBB028u; // this is c code that should read the memory
+    //volatile u8 amount = *(volatile u8*)0x80BBB028u; // this is c code that should read the memory
+    register int amount;
 
-    *(u8 *)(param_1 + 0x288) = amount;
+    asm {
+        lis r12, 0x80BB
+        ori r12, r12, 0xB000
+
+        lwz r10, 0x28(r12)
+        mr amount, r10
+    }
+
+    // maybe easier to read with asm
+    *(int *)(param_1 + 0x288) = amount;
     return;
 }
+
+
 
 /*
 extern __restore_gpr26

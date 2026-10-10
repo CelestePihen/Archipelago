@@ -2,14 +2,10 @@
 # Super Short term
 - Edit world map so all levels unlocked from start
 - Ask how difficult adding UI elements is.
-- try editing world 1 path info manually and test it out
-  - test modified pointW1
-  - use other program for csv editing
 - Mention which files needs to be selected for settings:
 - Nsmbw: checkpoint item unique for each level?
-- Rename raw rules to data / raw_data / rule_data?
+- Rename raw rules to rule_data?
 - Work on FINAL MOVMENETS : so REACT can start on block logic
-- Decide on way to store brick rules
 - Format list of all blocks
 - Spend time on ap-map pack : download images from wiki with python
 - Option to exlude specific worlds
@@ -18,41 +14,30 @@
 - Ap: write my slot data and seed to meme with riivolution: verify in client
 - Castles req second level half
 - Mention Mac issue in setup
-- change display name of riivolution options?
 - make level completion an impactful setting?
-- other use fuzzer hook
 - improve description of RandomizePowerups
-- I think it could be a good idea to have a list somewhere telling which stages aren't rando'd
 - setup guide: do not have dolphin open
 - clarify dolphin folder when selecting : not rom folder, should include dolphin.exe
 - what about shuffling the enemy ambush stages
 - Level shuffle options
 - I've looked at the rest of the castles in the editor and if I am correct in what I think Is happening 1-C, 3-C, and 6-C should all be fine and the only ones that won't work are 4-C and 5-C (obviously 2-C & 8-C arent randoed for other reasons)
 - Test remaining 7-C rando
-- Advertise rm_tmp
-- Auto run /rm_tmp if some files been removed from temp folder
 - Stricter error for having dolphin open when connect
-- Try included dolphin version in /versions
 - Docs: progressive world
 - Descriptive folder browsing
-- Is enemies unlocked correct
 - Docs: level shuffle limitation, trap explain
 - option exclude some levels
-- I think just a setting that can remove up to 5 levels is fine
-- Allow manual placements of levels
+  - I think just a setting that can remove up to 5 levels is fine
 - Have 2 lists during enterence rando creation: 1 for placement pool and 1 for level pool, so can seperate them
-- Right. I should probably make a list of levels which we allows to be randoed to 7-C instead of a disallowed list like I implement.
-- work on replace csv
-  - test
-  - better if could modify code
-  - or do dynamic write
-  - start looking from my world9 patch
 - make breaking changes
-- update docs !!!!!!
+
+- I think it's not bad bad idea to have an option with just world unlocks rather then 2 progressive worlds
+- WorldsUnlocks apworld side
+  - levelunlock apworld side
+
 
 
 ## Playtest
-- backward combat for coin battle
 - bowser_level_unlock 
 - starcoin_requirement_world_unlock
 - 3-4 fix and cause
@@ -61,14 +46,13 @@
 - powerups : a lot, get help
 - Having more powerups than loc should send hints
 - performance from just the riivo patch : no client
-- fail to reading region -> rm_tmp
-- /Where_is /what_is
 - 7-6 unlock
 - Print big red message if dolphin valuation finds incorrect settings
 - level shuffle plando
 - goomba extinction
 - prossesed_inventory_powerup_locations rework
 - only give unlocked powerups
+- LevelUnlock logic
 
 
 ## Bugs to fix
@@ -87,6 +71,8 @@
   - I have some problems with the current secret exit systems: figure it out and write unit tests
 - Inventory star broken
 - Go to next world after beating airship
+- enter peach castle crashes game
+- large fuzzing error : why ? level_shuffle mostly off
 
 
 0x80792f50 : GetNumberOfCoinsCollectedInEveryLevelForModelPlayBase

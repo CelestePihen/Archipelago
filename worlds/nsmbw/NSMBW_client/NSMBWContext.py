@@ -7,7 +7,7 @@ from . import dolphin_interface_client
 from .NSMBWCommandProcessor import NSMBWCommandProcessor
 from .NSMBWInterface import *
 from .patcher import Patcher
-from ..options import HintMovieShopPriceLogic, AlternativeGoal, BlockSanity
+from ..options import HintMovieShopPriceLogic, AlternativeGoal, BlockSanity, WorldUnlock
 from ..Common import *
 from .. import NSMBWworld, locations
 
@@ -136,6 +136,8 @@ class NSMBWContext(SuperContext):
     coin_prev_overflow : int = 0
 
     block_list : str  = ""
+    
+    patcher : Patcher | None
 
     def __init__(self, server_address: str, password: str, real:bool=True):
         if real:
@@ -203,8 +205,7 @@ class NSMBWContext(SuperContext):
                 # checks for new slot_data values to be compatible
 
                 if not Utils.is_frozen():
-                    backwards_compat : List[tuple] = [("starcoin_requirement_world_unlock", defaultdict(int)), ("bowser_level_unlock", 0), ("block_sanity", False)]
-                    # ("death_link_amnesty", 1), ("hint_movie_shop_price_logic",HintMovieShopPriceLogic.option_ordered), ("use_riivolution", 0), ("level_shuffle_riivolution", 0)
+                    backwards_compat : List[tuple] = []
                     for name, value in backwards_compat:
                         if name not in self.slot_data.keys():
                             self.slot_data[name] = value
@@ -946,15 +947,15 @@ class NSMBWContext(SuperContext):
                     if unlocked_worlds[world_num-1] <= 1:
                         if not (level_name in self.completed_levels):
                             self.completed_levels.append(level_name)
-                        self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x27,1))
+                        #self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x27,1))
                         logger.info(f"You collected a check for completing {level_name}, to unlock the rest of this world, receive its AP-item.")
-                else:
-                    if unlocked_worlds[world_num-1] >= 2:
-                        if level_name in self.completed_levels:
-                            self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + 0x10,1))
-                            self.completed_levels.remove(level_name)
-                            logger.info(f"Second half of world {world_num} is unlocked")
-                            # if reset this value then maybe will not move to next world
+                #else:
+                #    if unlocked_worlds[world_num-1] >= 2:
+                #        if level_name in self.completed_levels:
+                #            self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + 0x10,1))
+                #            self.completed_levels.remove(level_name)
+                #            logger.info(f"Second half of world {world_num} is unlocked")
+                #            # if reset this value then maybe will not move to next world
 
 
                 #castle logic
@@ -1185,11 +1186,28 @@ class NSMBWContext(SuperContext):
     async def handle_unlocked_worlds(self):
         # when leaving a level the game somtimes freezes when world1 is not unlocked
         use_world_one = self.game_interface.is_in_worldmap()#self.game_interface.is_in_level()#not (current_map_world in [7,8])
+
         for world_num in range(1 , 9 + 1):
             if ((self.unlocked_worlds[world_num - 1] >= 1) and (self.starcoin_count >= self.slot_data["starcoin_requirement_world_unlock"][str(world_num)])) or ((not use_world_one) and world_num == 1):
                 self.game_interface.set_worldstats(world_num, b'\x01')
             elif self.unlocked_worlds[world_num - 1] == 0:
                 self.game_interface.set_worldstats(world_num, b'\x00')
+
+        second_half : int
+        match self.slot_data["world_unlock"]:
+            case WorldUnlock.option_separate:
+                second_half = 0
+                for world_num in range(1 , 8 + 1):
+                    second_half = (second_half << 1)
+                    if (self.unlocked_worlds[world_num - 1] >= 2):
+                        second_half += 1
+            case WorldUnlock.option_single:
+                second_half = 2**8-1
+            case _:
+                raise ValueError(f"world_unlock : self.slot_data['world_unlock']")
+
+        self.game_interface.set_world_second_half_unlock(int_to_bytes(second_half, 4))
+
 
 
 
@@ -1722,7 +1740,7 @@ class NSMBWContext(SuperContext):
             logger.info(text)
 
 
-    def get_dolphin_run_command(self, _patcher, save_state_file = "") -> List[str]:
+    def get_dolphin_run_command(self, save_state_file = "") -> List[str]:
         if Utils.is_windows:
             dolphin_path = Path(Utils.get_settings()["nsmbw_settings"].dolphin_folder) / "Dolphin.exe"
             assert dolphin_path.exists(), "dolphin.exe needs to be correct"
@@ -1738,7 +1756,7 @@ class NSMBWContext(SuperContext):
                 val =  [
                     "flatpak",
                     "run",
-                    f"--filesystem={str(_patcher.shortcut_path)}:ro",
+                    f"--filesystem={str(self.patcher.shortcut_path)}:ro",
                 ]
                 if save_state_file != "":
                     val.append(f"--filesystem={str(save_state_file)}:ro"),
@@ -1765,28 +1783,28 @@ class NSMBWContext(SuperContext):
         except AssertionError as e:
             logger.error(e)
         try:
-            _patcher = Patcher(self.username, self.seed_name, self.slot_data)
-            if not _patcher.shortcut_path.exists():
-                _patcher.patch()
-            _patcher.get_region()
+            self.patcher = Patcher(self.username, self.seed_name, self.slot_data)
+            if not self.patcher.shortcut_path.exists():
+                self.patcher.patch()
+            self.patcher.get_region()
 
 
-            assert _patcher.shortcut_path.exists(), "need to have created shortcut successfully"
+            assert self.patcher.shortcut_path.exists(), "need to have created shortcut successfully"
 
             if dolphin_interface_client.assert_no_running_dolphin():
                 if auto_start or override:
                     if ((Path(get_settings()['nsmbw_settings'].save_file_path) / "nsmbw_saves" / f"{self.seed_name}.json").exists()) and auto_load:
-                        rii_path = _patcher.output_path.parent.parent.parent
-                        save_state_file = rii_path / "StateSaves" / f"{_patcher.region}.s0{self.save_slot}"
-                        subprocess.Popen(self.get_dolphin_run_command(_patcher, str(save_state_file)) + [
-                            "-e", str(_patcher.shortcut_path),
+                        rii_path = self.patcher.output_path.parent.parent.parent
+                        save_state_file = rii_path / "StateSaves" / f"{self.patcher.region}.s0{self.save_slot}"
+                        subprocess.Popen(self.get_dolphin_run_command(str(save_state_file)) + [
+                            "-e", str(self.patcher.shortcut_path),
                             "-s", str(save_state_file),
                             ],
                         env=Utils.env_cleared_lib_path(),
                         )
                     else:
-                        subprocess.Popen(self.get_dolphin_run_command(_patcher) + [
-                            "-e", str(_patcher.shortcut_path),
+                        subprocess.Popen(self.get_dolphin_run_command() + [
+                            "-e", str(self.patcher.shortcut_path),
                             ],
                             env=Utils.env_cleared_lib_path(),
                         )

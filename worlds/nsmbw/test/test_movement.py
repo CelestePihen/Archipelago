@@ -13,7 +13,7 @@ class TestMovementOff(NSMBWTestBase):
 
         "bowser_star_unlock" : 100,
         "bowser_world_unlock" : 4,
-        "level_shuffle_riivolution": False,
+        "level_shuffle": False,
     }
 
     def test_levels(self) -> None:
@@ -48,7 +48,7 @@ class TestMovementOn(NSMBWTestBase):
         "logic_outside_powerups" : True,
         "bowser_star_unlock" : 100,
         "bowser_world_unlock" : 4,
-        "level_shuffle_riivolution": False,
+        "level_shuffle": False,
     }
 
     def test_levels(self) -> None:

@@ -50,13 +50,14 @@
    - You can change their values later on in `host.yaml`. BE CAREFUL use `/` or `\\` NOT `\` as path separators.
    - Linux only: On Desbian distros like Fedora and Arch users (including SteamOS) you have to install `dolphin-emu-tool` separate from dolphin. It is included in the ´flat-pak´ version.
 3) Enter your connection details and press `CONNECT` in the client.
+   - Do NOT have dolphin open before and during this step.
 4) The game will now open automatically.
    - If it does not, you can right-click your game in dolphin → `start with riivolution patch`. Enable just the patch for this multiworld and start the game.
 5) Select `SAVEFILE 2` to play on.
 6) Play the game: Beat levels and collect star coins. Prepare to take down bowser.
 7) See the quirks section in [en_NSMBW.md](../docs/en_NSMBW.md) for quirks with the implementation.
 8) Make save-states to save the game and run `/save` often.
-   - However do NOT make a save state in peach castle, it will release your remaining starcoin locations.
+   - However, do NOT make a save state in peach castle, it will release your remaining starcoin locations.
    - To close the client run `/exit` to make sure everything is saved correctly.
 
 ## Tracker 

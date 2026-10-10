@@ -1,5 +1,6 @@
 isSpecialWorldCourseOpen__FUc=0x800fc510
 FUN_808ce8e0__Fiiff=0x808ce8e0
+GetClearStatus__Fii=0x800FA9D0
 
 
 

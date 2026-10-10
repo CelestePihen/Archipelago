@@ -19,6 +19,8 @@ LEVEL_COUNT = 77
 DEPRIO_HM = [2,4,5,13,28,38,39,46,47,53,57,62,65]
 DEPRIO_HM += [6, 9, 12, 27, 37, 41, 43,51, 54, 55] # broken ?
 
+BOSS_HEALTH_COUNT = 10
+
 
 # exit_type is if secret or normal exit 1== normal, 2==secret
 class SecretExit(NamedTuple):
@@ -123,8 +125,8 @@ class ITEM:
 
     StarCoin        = "Starcoin"
     Time            = "Time"
-    GlitchedLogic   = "glitched logic"
-    BossHealth      = "Boss Health"
+    GlitchedLogic   = "Glitched Logic"
+    BossHealth      = "Decrease Boss Health"
 
 
 
@@ -187,7 +189,7 @@ def name_level(world_num : int, level_num : int) -> str:
     return f"{name_base(world_num,level_num)} clear"
 
 def name_starcoin(world_num : int, level_num : int, scnum : int) -> str:
-    return f"{name_base(world_num,level_num)} sc{scnum}"
+    return f"{name_base(world_num,level_num)} Star Coin {scnum}"
 
 def name_secret(secret_exit : SecretExit) -> str:
     if secret_exit.exit_type == 2:
@@ -215,7 +217,7 @@ def name_inventory(i : int) -> str:
 def name_world_unlock(world_num : int):
     assert 1 <= world_num <= 9
     if world_num != 9:
-        return f"World{world_num} progressive"
+        return f"Progressive World{world_num}"
     else:
         return f"World{world_num}"
 
@@ -241,7 +243,7 @@ def name_block_sanity(world_num : int, level_num : int, id : int) -> str:
     from .raw_rules import get_block_id
     blocks  = get_block_id(world_num, level_num)
     #return f"{name_base(world_num,level_num)} Brickblock {id : 03} {blocks[id-1].name}"
-    return f"{name_base(world_num,level_num)} Brickblock {blocks[id-1].name}"
+    return f"{name_base(world_num,level_num)} {blocks[id-1].name}"
 
 
 

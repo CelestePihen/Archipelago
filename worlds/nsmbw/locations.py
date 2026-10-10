@@ -29,7 +29,7 @@ for world_num in range(1,9+1): # worlds
     block_level_set = set()
     for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
         for sc in range(1,3+1):
-            LOCATION_NAME_TO_ID.update({name_starcoin(world_num, level_num, sc): 10000 + 1000 * world_num + 10 * level_num + sc})
+            LOCATION_NAME_TO_ID.update({name_starcoin(world_num, level_num, sc): 10_000 + 1000 * world_num + 10 * level_num + sc})
         sc_set = set(name_starcoin(world_num, level_num, sc) for sc in range(1, 3 + 1))
 
         blocks = get_block_id(world_num,level_num)
@@ -297,7 +297,7 @@ def shuffle_level_order(world: NSMBWworld) -> bool:
 
     world.shuffled_level_order = list(range(sum(LEVELS_PER_WORLD)))
 
-    if world.options.level_shuffle_riivolution.value == True:
+    if world.options.level_shuffle.value == True:
         not_shuffled_locations = deepcopy(world.shuffled_level_order)
         not_shuffled_levels    = deepcopy(world.shuffled_level_order)
 
