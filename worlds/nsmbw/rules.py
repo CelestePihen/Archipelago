@@ -8,7 +8,6 @@ from .options import *
 from .Common import *
 from .locations import shuffle_level_order, pos_to_level_name, level_name_to_pos
 from .raw_rules import *
-from . import raw_rules
 
 
 from typing import TYPE_CHECKING
@@ -20,45 +19,54 @@ def set_all_rules(world: "NSMBWworld") -> None:
     set_all_entrance_rules(world)
     set_all_location_rules(world)
     set_completion_condition(world)
-    assert world.get_region(name_base(world.options.starting_world.value, 1)).can_reach(world.multiworld.state), f"unable to reach first level in your starting world {world.options.starting_world.value}"
+
+    assert world.get_region(name_base(*level_randoed(world.shuffled_level_order, world.options.starting_world.value, 1))).can_reach(world.multiworld.state), f"unable to reach first level in your starting world {world.options.starting_world.value}"
 
 
 def set_level_entrance_rules(world: "NSMBWworld") -> None:
 
     connections = get_level_connections()
 
-    for world_num, level_num in LEVELS:
-        randod_world_num1, randod_level_num1 = pos_to_level_name(world.shuffled_level_order[level_name_to_pos(world_num, level_num)])
-        world.set_rule(world.get_entrance(f"{name_base(world_num,level_num)} internal level connection"),LevelRules[name_base(randod_world_num1, randod_level_num1)][0])
+    for level in LEVELS:
+        if (level_randoed_bijection(world.shuffled_level_order, *level))[0] == 10:
+            continue
+        world.set_rule(world.get_entrance(f"{name_base(*level)} internal level connection"),LevelRules[name_base(*level)][0])
 
+    # world_num is current world
+    # con_randod_world_num, con_randod_level_num is the orignal name for the level conecting to
+    # org_randod_world_num, org_randod_level_num is the orginal name for the level connecting from
     for world_num in range(1,9+1):
-        for i, org_lev_num in enumerate(connections[world_num-1]):
-            for con_lev_num in org_lev_num:
+        for org_lev_num, con_levels in enumerate(connections[world_num-1]):
+            for con_lev_num in con_levels:
                 assert type(con_lev_num) == int, "should be an integer"
-                randod_world_num, randod_level_num = pos_to_level_name(world.shuffled_level_order[level_name_to_pos(world_num,con_lev_num)])
+                con_randod_world_num, con_randod_level_num = level_randoed(world.shuffled_level_order, world_num, con_lev_num)
+                if org_lev_num != 0:
+                    org_randod_world_num, org_randod_level_num = level_randoed(world.shuffled_level_order, world_num, org_lev_num)
+                else:
+                    org_randod_world_num, org_randod_level_num = (0,0)
 
                 _rule = True_()
-                if mod_level_name(world_num,i) == "T":
+                if mod_level_name(org_randod_world_num,org_randod_level_num) == "T":
                     _rule &= rules.Has(name_world_unlock(world_num), count=2)
 
                 if world_num == 9:
                     assert len(world.star_coin_req_per_world_9_level) == 8
                     _rule &= rules.Has(ITEM.StarCoin, count=world.star_coin_req_per_world_9_level[con_lev_num - 1])
 
-                if world_num == 8 and con_lev_num == 9:
+                if (con_randod_world_num, con_randod_level_num) == (8,9):
                     # want to change to CanReachRegion, but unshure how to put in a count for it : with Any() but req ap 0.6.8
                     bowser_starcoin_rules = Has(ITEM.StarCoin, count=world.options.bowser_star_unlock.value)
 
-                    bowser_world_clear_list = list([name_base(world_num, level_num) for world_num, level_num in[(1, 8), (2, 8), (3, 8), (4, 9), (5, 8), (6, 9), (7, 9)]])
+                    bowser_world_clear_list = list([name_base(*level) for level in[(1, 8), (2, 8), (3, 8), (4, 9), (5, 8), (6, 9), (7, 9)]])
                     bowser_world_clear_rule =  HasFromListUnique(*bowser_world_clear_list, count=world.options.bowser_world_unlock.value)
 
                     bowser_level_clear_rule = rules.HasFromList(*list((name_base(*level)) for level in LEVELS),count=world.options.bowser_level_unlock.value)
 
                     _rule &= bowser_starcoin_rules & bowser_world_clear_rule & bowser_level_clear_rule
-                if i== 0:
-                    world.set_rule(world.get_entrance(f"World{world_num}->{name_base(world_num, con_lev_num)}"),_rule)
+                if org_lev_num == 0:
+                    world.set_rule(world.get_entrance(f"World{world_num}->{name_base(con_randod_world_num, con_randod_level_num)}"),_rule)
                 else:
-                    world.set_rule(world.get_entrance(f"{name_base(world_num, i)}->{name_base(world_num, con_lev_num)}"),_rule )
+                    world.set_rule(world.get_entrance(f"{name_base(org_randod_world_num, org_randod_level_num)}->{name_base(con_randod_world_num, con_randod_level_num)}"),_rule )
     for secret_exit in SECRET_EXIT:
         if secret_exit.is_item:
             _rule = LevelRules[name_base(secret_exit.world, secret_exit.level)][0]
@@ -83,15 +91,14 @@ def set_all_entrance_rules(world: "NSMBWworld") -> None:
 def set_all_location_rules(world: "NSMBWworld") -> None:
     #sets basic rules for each levels star coin
     #
-    for world_num in range(1, 9+1):  # worlds
-        for level_num in range(1, LEVELS_PER_WORLD[world_num - 1]+1):
-            for sc in range(1, 3 + 1):
-                # makes starcoins in logic if this level is cleared
-                randod_world_num1, randod_level_num1 = pos_to_level_name(world.shuffled_level_order[level_name_to_pos(world_num, level_num)])
-
-                star_coin = world.get_location(name_starcoin(world_num, level_num, sc))
-                sc_logic = LevelRules[name_base(randod_world_num1, randod_level_num1)].starcoins[sc - 1]
-                world.set_rule(star_coin, sc_logic )
+    for level in LEVELS:
+        if (level_randoed_bijection(world.shuffled_level_order, *level))[0] == 10:
+            continue
+        for sc in range(1, 3 + 1):
+            # makes starcoins in logic if this level is cleared
+            star_coin = world.get_location(name_starcoin(*level, sc))
+            sc_logic = LevelRules[name_base(*level)].starcoins[sc - 1]
+            world.set_rule(star_coin, sc_logic )
 
     hm_req = specific_hintmovie_requierments()
     total_cost = 0
@@ -121,50 +128,52 @@ def set_all_location_rules(world: "NSMBWworld") -> None:
         for secret_exit in SECRET_EXIT:
             world_num = secret_exit.world
             level_num = secret_exit.level
+
+            if secret_exit.exit_type == 1:
+                continue
+
             secret_exit_loc = world.get_location(name_secret(secret_exit))
 
             randod_world_num1, randod_level_num1 = pos_to_level_name(world.shuffled_level_order[level_name_to_pos(world_num, level_num)])
 
-            if secret_exit.exit_type == 2:
-                #assert len( LevelRules[name_base(world_num, level_num)]) == 3, f"Make sure lists is of correct size for {name_base(world_num, level_num)}"
-                _rule = LevelRules[name_base(randod_world_num1, randod_level_num1)].secret_exit
-                assert _rule is not None, f"werid rando for {name_base(world_num,level_num)} to {name_base(randod_world_num1, randod_level_num1)}"
-                world.set_rule(secret_exit_loc, rules.Has(name_base(world_num, level_num)) & _rule) # TODO remove this temp has_base, it is just for legacy reasons
+            #assert len( LevelRules[name_base(world_num, level_num)]) == 3, f"Make sure lists is of correct size for {name_base(world_num, level_num)}"
+            _rule = LevelRules[name_base(randod_world_num1, randod_level_num1)].secret_exit
+            assert _rule is not None, f"werid rando for {name_base(world_num,level_num)} to {name_base(randod_world_num1, randod_level_num1)}"
+            world.set_rule(secret_exit_loc, rules.Has(name_base(world_num, level_num)) & _rule) # TODO remove this temp has_base, it is just for legacy reasons
 
-            elif secret_exit.exit_type == 1:
-                world.set_rule(secret_exit_loc, rules.Has(name_base(world_num, level_num)) )
 
     for i in range(1, world.options.include_inventory_powerups.value + 1):
         invent_pow = world.get_location(name_inventory(i))
 
-        req_num = math.ceil((i/ world.options.include_inventory_powerups.value) * 70)
+        req_num = math.ceil((i/ world.options.include_inventory_powerups.value) * 60) # 70 originaly, lowered to promote all reachable
         invent_rule_general = Has(ITEM.FAKE.InventoryPow.value, count=req_num) & door & climb
         invent_rule_no_toad =  Has(ITEM.FAKE.InventoryPowNoToad.value, count=req_num)
 
-        world.set_rule(invent_pow, invent_rule_no_toad | invent_rule_general | GlitchedRule())
+        glitch = GlitchedRule() & (Has(ITEM.FAKE.InventoryPowNoToad.value) | Has(ITEM.FAKE.InventoryPow.value) )
+        world.set_rule(invent_pow, invent_rule_no_toad | invent_rule_general | glitch)
 
     for level in LEVELS:
-        rando_level = pos_to_level_name(world.shuffled_level_order[level_name_to_pos(*level)]) # should maybe use the bijection here
-        rando_level_bijection = pos_to_level_name(world.shuffled_level_order[world.shuffled_level_order.index(level_name_to_pos(*level))])
+        if (level_randoed_bijection(world.shuffled_level_order, *level))[0] == 10:
+            continue
 
         if world.options.oneups_sanity.value == True:
-            if LevelRules[name_base(*rando_level)].oneups is not None:
+            if LevelRules[name_base(*level)].oneups is not None:
                 loc = world.get_location(name_1ups(*level))
-                world.set_rule(loc, LevelRules[name_base(*rando_level)].oneups)
+                world.set_rule(loc, LevelRules[name_base(*level)].oneups)
 
         if world.options.nintynine_coin_sanity.value == True:
             loc = world.get_location(name_99coins(*level))
-            world.set_rule(loc, LevelRules[name_base(*rando_level)].nintynine_coins)
+            world.set_rule(loc, LevelRules[name_base(*level)].nintynine_coins)
 
         if world.options.red_coin_ring.value == True:
-            if LevelRules[name_base(*rando_level)].red_coin_ring is not None:
+            if LevelRules[name_base(*level)].red_coin_ring is not None:
                 loc = world.get_location(name_red_coin_ring(*level))
-                world.set_rule(loc, LevelRules[name_base(*rando_level)].red_coin_ring)
+                world.set_rule(loc, LevelRules[name_base(*level)].red_coin_ring)
 
         if world.options.roulet_block.value == True:
-            if LevelRules[name_base(*rando_level)].roulette is not None:
+            if LevelRules[name_base(*level)].roulette is not None:
                 loc = world.get_location(name_roulette(*level))
-                world.set_rule(loc, LevelRules[name_base(*rando_level)].roulette)
+                world.set_rule(loc, LevelRules[name_base(*level)].roulette)
 
 
 def set_completion_condition(world: "NSMBWworld") -> None:

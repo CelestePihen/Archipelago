@@ -163,7 +163,7 @@ question_switch = has_element(ITEM.LEVELELEMENTS.QuestSwitch)
 p_switch = has_element(ITEM.LEVELELEMENTS.PSwitch)
 red_block = has_element(ITEM.LEVELELEMENTS.RedSwitch) & Has(name_base(3,5))
 
-yoshi = has_ability(ITEM.ABILITIES.Yoshi)
+yoshi = has_element(ITEM.LEVELELEMENTS.Yoshi)
 star = has_ability(ITEM.ABILITIES.Star)
 
 door = has_element(ITEM.LEVELELEMENTS.Door) & button_up
@@ -439,6 +439,14 @@ def get_level_connections() -> List[List[List[int]]]:
             [],  # -6
             [],  # -7
             []  # -8
+        ],
+        [ # World coin
+            [1],
+            [2],
+            [3],
+            [4],
+            [5],
+            [],
         ]
 
     ]
@@ -531,7 +539,3 @@ def get_block_id(world_num : int, level_num : int) -> List[Block]:
     })
 
     return block_ids[name_base(world_num,level_num)]
-
-MAX_BLOCKS = 0
-for level in LEVELS:
-    MAX_BLOCKS = max(MAX_BLOCKS, len(get_block_id(*level)))

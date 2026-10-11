@@ -5,6 +5,7 @@
 kmBranchDefCpp(0x80792f50, 0x80792fe8, void, int param_1)
 {
     //volatile u8 amount = *(volatile u8*)0x80BBB028u; // this is c code that should read the memory
+
     register int amount;
 
     asm {
@@ -15,12 +16,25 @@ kmBranchDefCpp(0x80792f50, 0x80792fe8, void, int param_1)
         mr amount, r10
     }
 
-    // maybe easier to read with asm
     *(int *)(param_1 + 0x288) = amount;
     return;
 }
 
+/*
+// makes all levels selectable, doesnt work
+kmBranchDefAsm(0x80796204,0x80796208)
+{
+    li r3, 0
+}
+*/
 
+
+/*
+kmBranchDefCpp(0x80792e60, 0x80792f4c , bool, int param_1)
+{
+    return true;
+}
+*/
 
 /*
 extern __restore_gpr26

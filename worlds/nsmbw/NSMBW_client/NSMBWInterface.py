@@ -509,7 +509,7 @@ class NSMBWInterface(object):
 
         patch_ability(ITEM.ABILITIES.Crouch, self.memory_addresses.patch_crouch)
 
-        patch_ability(ITEM.ABILITIES.Yoshi, self.memory_addresses.patch_yoshi, double_check=False)
+        patch_ability(ITEM.LEVELELEMENTS.Yoshi, self.memory_addresses.patch_yoshi, double_check=False)
 
 
         if ITEM.ABILITIES.Swim in slot_data_ablities_included:
@@ -678,7 +678,15 @@ class NSMBWInterface(object):
         else:
             return 0,0
 
+    def get_modified_world_level_num_in_level(self) -> Tuple[int, int]:
+        level = self.get_world_level_num_in_level()
 
+        if level == (0,0):
+            return level
+
+        mod_level = level_randoed(self.slot_data["shuffled_level_order"], *level)
+
+        return mod_level
 
     # just created
     def get_sc(self) -> bytes:

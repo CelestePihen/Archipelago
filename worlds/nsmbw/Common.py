@@ -66,7 +66,6 @@ class ITEM:
         GroundPound = "Ground Pound"
         WallJump    = "Wall Jump"
         Crouch      = "Crouch"
-        Yoshi       = "Yoshi"
         Swim        = "Swim"
         Star        = "Star"
         Climb       = "Climb"
@@ -86,6 +85,7 @@ class ITEM:
         QuestSwitch     = "?-Switch"
         RedSwitch       = "!-Switch"
         CheckPoint      = "Check Point"
+        Yoshi           = "Yoshi"
         #RedCoinRing     = "Red Coin Ring"
 
 
@@ -146,9 +146,11 @@ SUPPORTED_VERSIONS = ["E2"]
 PLAYER_COUNT = 4
 
 LEVELS = []
-for world_num in range(1,9+1):
+for world_num in range(1,10+1):
     for level_num in range(1, LEVELS_PER_WORLD[world_num-1]+1):
         LEVELS.append((world_num, level_num))
+del world_num
+del level_num
 
 
 def mod_level_name(world_num : int, level_num : int) -> str:

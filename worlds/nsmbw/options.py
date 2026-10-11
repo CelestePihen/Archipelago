@@ -893,7 +893,8 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
         raise OptionError(f"(NSMBW generation error) You need to turn on more locations for NSBMW for it to be able to generate"
                           f"you have approximate {loc} locations, {itm} items, margin {itm-loc}")
 
-    if (Utils.get_settings()["nsmbw_settings"].allow_gen_impactful_settings == False) :#and (len(world.multiworld.player_ids) >= 2):
+    TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+    if (Utils.get_settings()["nsmbw_settings"].allow_gen_impactful_settings == False) and TESTING:#and (len(world.multiworld.player_ids) >= 2):
         if world.options.include_inventory_powerups.value > 100:
             raise OptionError(f"(NSMBW generation error) You have more than 100 inventory powerup locations which is many and is locked by settings,"
                                   f"if you still wish to use this, enable allow_gen_impactful_settings in your host.yaml")

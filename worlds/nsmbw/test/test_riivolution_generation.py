@@ -13,6 +13,10 @@ class TestLevelShuffle(NSMBWTestBase):
         "music_shuffle" : True,
     }
 
+    def test_print_whereis(self):
+        for level in LEVELS:
+            print(f"{name_base(*level)} is replaced by {name_base(*level_randoed(self.world.shuffled_level_order,*level))} and ended up at {name_base(*level_randoed_bijection(self.world.shuffled_level_order,*level))} ")
+
 class TestLevelShufflePlando(NSMBWTestBase):
     options = {
         "randomize_movement": True,

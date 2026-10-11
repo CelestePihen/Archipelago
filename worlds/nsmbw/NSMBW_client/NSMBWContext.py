@@ -666,7 +666,7 @@ class NSMBWContext(SuperContext):
                 sc_status = sc_statuses[4 * sc_num-1]
 
                 if sc_status == 0:  # becomes 0 if collected
-                    world_num, level_num = self.game_interface.get_world_level_num_in_level()
+                    world_num, level_num = self.game_interface.get_modified_world_level_num_in_level()
                     if (world_num, level_num) == (0, 0):
                         continue
 
@@ -687,23 +687,27 @@ class NSMBWContext(SuperContext):
         if self.moded_levelstats == ModifiedState.MODWOLD1_8:
             world_nums = [9]
 
-        for world_num in world_nums:
-            for level_num in range(1,LEVELS_PER_WORLD[world_num-1]+1):
-                level_status = bytes_to_int(self.game_interface.get_level_stats(world_num,level_num))
+        if self.game_interface.get_world_level_num_in_level()[0] not in world_nums:
+            return []
 
-                def send_sc_check(sc_num=0):
-                    location_name = name_starcoin(world_num, level_num, sc_num)
-                    if not NSMBWworld.location_name_to_id[location_name] in self.locations_handled:
-                        print(f"Starcoin {sc_num} collected from {mod_level_name(world_num, level_num)}")
-                        checked_locations.append(NSMBWworld.location_name_to_id[location_name])
-                        if Utils.get_settings()["nsmbw_settings"].debug_mode:
-                            print(f"Sent check from item{location_name}")
-                if level_status & 1 == 1:
-                    send_sc_check(sc_num=1)
-                if level_status & 2 == 2:
-                    send_sc_check(sc_num=2)
-                if level_status & 4 == 4:
-                    send_sc_check(sc_num=3)
+
+        level = self.game_interface.get_world_level_num_in_level()
+        level_status = bytes_to_int(self.game_interface.get_level_stats(*level))
+        randoed = self.game_interface.get_modified_world_level_num_in_level()
+
+        def send_sc_check(sc_num=0):
+            location_name = name_starcoin(*randoed, sc_num)
+            if not NSMBWworld.location_name_to_id[location_name] in self.locations_handled:
+                print(f"Starcoin {sc_num} collected from {name_base(*randoed)}")
+                checked_locations.append(NSMBWworld.location_name_to_id[location_name])
+                if Utils.get_settings()["nsmbw_settings"].debug_mode:
+                    print(f"Sent check from item{location_name}")
+        if level_status & 1 == 1:
+            send_sc_check(sc_num=1)
+        if level_status & 2 == 2:
+            send_sc_check(sc_num=2)
+        if level_status & 4 == 4:
+            send_sc_check(sc_num=3)
 
         self.locations_handled += checked_locations
         return checked_locations
@@ -713,7 +717,7 @@ class NSMBWContext(SuperContext):
 
         if self.slot_data["nintynine_coin_sanity"] == True:
             if self.game_interface.is_in_level():
-                LEVEL = self.game_interface.get_world_level_num_in_level()
+                LEVEL = self.game_interface.get_modified_world_level_num_in_level()
                 if LEVEL == (0,0):
                     return checked_locations
 
@@ -748,7 +752,7 @@ class NSMBWContext(SuperContext):
                 current_lives = self.game_interface.get_lives_count(player_num)
                 if current_lives > self.prev_lifecount[player_num]:
                     self.prev_lifecount[player_num] = current_lives
-                    LEVEL = self.game_interface.get_world_level_num_in_level()
+                    LEVEL = self.game_interface.get_modified_world_level_num_in_level()
                     if LEVEL != (0, 0):
                         location_name = name_1ups(*LEVEL)
                         loc_id = NSMBWworld.location_name_to_id[location_name]
@@ -763,7 +767,7 @@ class NSMBWContext(SuperContext):
         checked_locations = []
 
         if self.slot_data["red_coin_ring"] == True:
-            LEVEL = self.game_interface.get_world_level_num_in_level()
+            LEVEL = self.game_interface.get_modified_world_level_num_in_level()
             if LEVEL == (0,0):
                 return checked_locations
 
@@ -810,7 +814,7 @@ class NSMBWContext(SuperContext):
         checked_locations = []
 
         if self.slot_data["block_sanity"] == BlockSanity.option_coin_blocks:
-            LEVEL = self.game_interface.get_world_level_num_in_level()
+            LEVEL = self.game_interface.get_modified_world_level_num_in_level()
             if LEVEL == (0, 0):
                 return checked_locations
 
@@ -887,21 +891,28 @@ class NSMBWContext(SuperContext):
 
         # level compleation logic
         # check if level is cleared
+        level = self.game_interface.get_world_level_num_in_level()
+
         world_nums = []
         if self.moded_levelstats == ModifiedState.UNMODIFIED:
             world_nums = range(1, 9 + 1)
         if self.moded_levelstats == ModifiedState.MODWOLD1_8:
             world_nums = [9]
+        if level[0] not in world_nums:
+            return []
 
-        for world_num in world_nums:
-            for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
-                level_status = self.game_interface.get_level_stats(world_num, level_num)[0]
-                if level_status & 16 == 16:
-                    level_name = name_level(world_num, level_num)
-                    if not (NSMBWworld.location_name_to_id[level_name] in self.locations_handled):
-                        checked_locations.append(NSMBWworld.location_name_to_id[level_name])
-                        if Utils.get_settings()["nsmbw_settings"].debug_mode:
-                            print(f"You collected a check for completing {level_name}")
+
+        # do we need to chech all or could we just check the one we are in?
+        #for world_num in world_nums:
+            #for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
+        randoed_level = self.game_interface.get_modified_world_level_num_in_level()
+        level_status = self.game_interface.get_level_stats(*level)[0]
+        if level_status & 16 == 16:
+            level_name = name_level(*randoed_level)
+            if not (NSMBWworld.location_name_to_id[level_name] in self.locations_handled):
+                checked_locations.append(NSMBWworld.location_name_to_id[level_name])
+                if Utils.get_settings()["nsmbw_settings"].debug_mode:
+                    print(f"You collected a check for completing {level_name}")
 
 
         if self.moded_levelstats == ModifiedState.UNMODIFIED:
@@ -910,6 +921,9 @@ class NSMBWContext(SuperContext):
             for secret_exit in SECRET_EXIT:
                 world_num = secret_exit.world
                 level_num = secret_exit.level
+                if (world_num, level_num) != randoed_level:
+                    continue
+
                 exit_name = name_secret(secret_exit)
                 level_stats = bytes_to_int(self.game_interface.get_level_stats(world_num, level_num))
 

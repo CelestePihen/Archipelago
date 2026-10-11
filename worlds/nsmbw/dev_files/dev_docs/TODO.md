@@ -3,11 +3,10 @@
 - Edit world map so all levels unlocked from start
 - Ask how difficult adding UI elements is.
 - Mention which files needs to be selected for settings:
-- Nsmbw: checkpoint item unique for each level?
 - Rename raw rules to rule_data?
 - Work on FINAL MOVMENETS : so REACT can start on block logic
 - Format list of all blocks
-- Spend time on ap-map pack : download images from wiki with python
+- Spend time on ap-map pack : download images from wiki with python?
 - Option to exlude specific worlds
 - do archipelago nameing of blocks
 - fix header licence
@@ -29,7 +28,7 @@
 - option exclude some levels
   - I think just a setting that can remove up to 5 levels is fine
 - Have 2 lists during enterence rando creation: 1 for placement pool and 1 for level pool, so can seperate them
-- make breaking changes
+- create map and item tracker?
 
 - I think it's not bad bad idea to have an option with just world unlocks rather then 2 progressive worlds
 - WorldsUnlocks apworld side
@@ -53,6 +52,7 @@
 - prossesed_inventory_powerup_locations rework
 - only give unlocked powerups
 - LevelUnlock logic
+- level name changes
 
 
 ## Bugs to fix
@@ -71,26 +71,9 @@
   - I have some problems with the current secret exit systems: figure it out and write unit tests
 - Inventory star broken
 - Go to next world after beating airship
-- enter peach castle crashes game
 - large fuzzing error : why ? level_shuffle mostly off
+- freez on world9 level clear
 
-
-0x80792f50 : GetNumberOfCoinsCollectedInEveryLevelForModelPlayBase
-extracted from castle pointer
-- playtest this patch
-- implement in client
-- invesitgate more at 80792e1c in ghidra, figure out which func breaks
-
-
-
-
-0x15e566c 	
-[NTSC/PAL] Peach's Castle Star Coins Pointer [32-Bit BE]
-+0x2248=[32-Bit BE] Spendable Stars Coins
-- might need to edit with code patch
-
-0x153e514 	
-Spendables Star Coins in Peach's Castle [32-Bit BE]
 
 
 ## Short term
@@ -189,16 +172,6 @@ Spendables Star Coins in Peach's Castle [32-Bit BE]
 
 
 
-## Breaking changes
-- remove the 7-6 and 8-7 normal exits
-- i think the both health item should be changed to something like decrease boss health
-- Make yoshi level element
-- option rename
-  - mostly riivolution but others too
-- Level shuffle rename from -> to level
-
-
-
 ## Logic
 - oneups_sanity (and which levels)
 - nintynine_coin_sanity (and amount)
@@ -290,6 +263,8 @@ Spendables Star Coins in Peach's Castle [32-Bit BE]
 - control level rando:
   - keep levels in same world
   - scale by difficulty
+- Nsmbw: checkpoint item unique for each level?
+
 
 
 ## ER
