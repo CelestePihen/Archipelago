@@ -169,7 +169,10 @@
 - make some / most of block sanity excluded
 - Pop-up in game after beating 8-A
   - can I steal somene from in game or does it need custom code?
-
+- Create built in map tracker
+- Dolphin debug to find whitch function responsible path unlocks
+- Goomba extinction: temp filler
+- Add index to game info 
 
 
 ## Logic

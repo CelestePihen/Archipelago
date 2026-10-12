@@ -230,7 +230,10 @@ def create_regular_locations(world: NSMBWworld) -> None:
         if world.options.block_sanity.value == BlockSanity.option_coin_blocks:
             blocks = get_block_id(*level)
             for i in range(1, len(blocks) + 1):
-                loc = get_location_names_with_ids([name_block_sanity(*level, i)])
+                name = name_block_sanity(*level, i)
+                if name in []: # this code is for selecting which types of blocks that are enabled
+                    continue
+                loc = get_location_names_with_ids([])
                 world.get_region(name_base(*level)).add_locations(loc, NSMBWLocation)
 
 

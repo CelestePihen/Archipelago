@@ -57,14 +57,17 @@ Dolphin Connection error, following these debug tips, in this order:
       2) You dont have multiple instances of dolphin open (except your ONE game library).
       3) If you are on macOS you will need re-sign dolphin. The procedure is described here: https://github.com/aldelaro5/dolphin-memory-engine#macos-code-signing
       4) Assert Memory Override (MEM1 and MEM2) is disabled. Dolphin -> Settings -> Advanced -> Emulated Memory Size Override.
-      5) Restart your PC.
-      6) Assert your dolphin emulator is recent (newer than 2026.1)
-      7) You have not renamed the dolphin exe and are not running on a fork of dolphin.
-      8) Enable MMU in Dolphin -> Settings -> Advanced -> Enable MMU.
-      9) Reset you dolphin settings Dolphin -> Settings -> Advanced -> Reset All Settings.
-      10) Test running the client in administrator mode. (By right-clicking your archipelago launcher -> run as administrator.)
-      11) Look at https://github.com/randovania/py-dolphin-memory-engine/issues?q=is%3Aissue to see if your issue matches any recorded about dme.
-      12) Post your error in the NSMBW discord, with a screenshot and your log file.
+      5) You do not have any cheat-codes enabled: e.g. gecko and ar codes.
+      6) Ensure that RetroAchievements is disabled in Dolphin (under Tools > Achievements, uncheck Enable RetroAchievements.org Integration).
+      7) Change the Fallback Region in Dolphin (under Options > Configuration > General), set it to NTSC-U.
+      8) Restart your PC.
+      9) Assert your dolphin emulator is recent (newer than 2026.1)
+      10) You have not renamed the dolphin exe and are not running on a fork of dolphin.
+      11) Enable MMU in Dolphin -> Settings -> Advanced -> Enable MMU.
+      12) Reset you dolphin settings Dolphin -> Settings -> Advanced -> Reset All Settings.
+      13) Test running the client in administrator mode. (By right-clicking your archipelago launcher -> run as administrator.)
+      14) Look at https://github.com/randovania/py-dolphin-memory-engine/issues?q=is%3Aissue to see if your issue matches any recorded about dme.
+      15) Ask for help in the NSMBW discord, with a screenshot of `/versions`, your log file from /archipelago/logs/nsmbw client_XXXXX and as much additional details as possible.
 """)
             logger.info(error_mess)
             time.sleep(3)
