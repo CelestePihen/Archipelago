@@ -60,6 +60,28 @@
    - However, do NOT make a save state in peach castle, it will release your remaining starcoin locations.
    - To close the client run `/exit` to make sure everything is saved correctly.
 
+## Linux save-state hotkeys
+
+In `host.yaml`, `nsmbw_settings.keypress_library` selects the input backend:
+
+- `0`: use the bundled Python `keyboard` library. On Linux, it requires the client to run as root.
+  Choose `1` or `2` to run the client without root privileges.
+- `1`: install `xdotool`. Your desktop may ask you to allow input control.
+- `2`: install `ydotool` and start its background service, `ydotoold`, before playing.
+  Installing ydotool alone does not start this service automatically.
+
+If `/dev/uinput` is missing, load the kernel module with `sudo modprobe uinput`.
+For service setup and permission errors, follow your distribution's instructions or the
+[ydotool setup documentation](https://github.com/ReimuNotMoe/ydotool#runtime).
+
+Some packages provide a systemd user service. After completing its setup,
+`systemctl --user enable --now ydotool.service` starts that service and enables it for future logins.
+If you start `ydotoold` manually in a terminal instead, it must remain running while using this backend.
+
+Restart the NSMBW client after changing the backend. To check both save and load hotkeys, run `/refresh`
+and switch to Dolphin before the hotkeys are sent. Check Dolphin's save/load notifications, not only the client log.
+This overwrites the save state in `clear_cache_save_slot`; back up any state you want to keep in that slot.
+
 ## Tracker 
 - You can optionally use the built-in universal tracker extension to track available locations.
 - Simply download [universal tracker](https://github.com/FarisTheAncient/Archipelago/releases?q=Tracker) and put it into your custom worlds folder (or double click it).
