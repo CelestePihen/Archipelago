@@ -309,33 +309,34 @@ class NSMBWInterface(object):
         """Deliver a Dolphin hotkey on Linux"""
         if Utils.get_settings()["nsmbw_settings"].keypress_library == 1:
             if shutil.which("xdotool") is None:
-                self.log_color(f"xdotool not found; install it for automatic save/load states on Linux, turn off this and instead use the keyboard library with root access, or make the state manually in slot. Skipping hotkey 'F{8}', shift:{shift}.","red")
+                self.log_color(f"xdotool not found; install it for automatic save/load states on Linux, turn off this and instead use the keyboard library with root access, or make the state manually in slot. Skipping hotkey 'F{fkey}', shift:{shift}.","red")
                 return False
         if Utils.get_settings()["nsmbw_settings"].keypress_library == 2:
             if shutil.which("ydotool") is None:
-                self.log_color(f"ydotool not found; install it for automatic save/load states on Linux, turn off this and instead use the keyboard library with root access, or make the state manually in slot. Skipping hotkey 'F{8}', shift:{shift}.","red")
+                self.log_color(f"ydotool not found; install it for automatic save/load states on Linux, turn off this and instead use the keyboard library with root access, or make the state manually in slot. Skipping hotkey 'F{fkey}', shift:{shift}.","red")
                 return False
 
         try:
             match  Utils.get_settings()["nsmbw_settings"].keypress_library:
                 case 1:
                     if shift:
-                        combo = f"F{fkey} + shift"
+                        combo = f"shift+F{fkey}"
                     else:
                         combo = f"F{fkey}"
                     subprocess.run(["xdotool", "key", "--clearmodifiers", combo],check=True,capture_output=True,)
                 case 2:
                     if shift:
-                        combo = [f"{58+fkey}:1",f"{58+fkey}:0"]
-                    else:
                         combo = ["42:1", f"{58+fkey}:1",f"{58+fkey}:0", "42:0"]
+                    else:
+                        combo = [f"{58+fkey}:1",f"{58+fkey}:0"]
                     subprocess.run(["ydotool", "key", *combo],check=True,capture_output=True,)
                 case _:
                     raise Exception(f"Unacunted case { Utils.get_settings()['nsmbw_settings'].keypress_library}")
             return True
         except Exception as e:
             logger.info(traceback.format_exc())
-            self.log_color(f"Error {e} when sending hotkey 'F{8}', shift:{shift} via xdotool or ydotool", "red")
+            detail = e.stderr.decode(errors="replace").strip() if isinstance(e, subprocess.CalledProcessError) and e.stderr else str(e)
+            self.log_color(f"Error {detail} when sending hotkey 'F{fkey}', shift:{shift} via xdotool or ydotool", "red")
             return False
 
     def save_state(self, slot : int, do_logging=True):
