@@ -150,14 +150,23 @@ def assert_no_running_dolphin() -> bool:
 
 
 def get_num_dolphin_instances() -> int:
-    try:
-        count = 0
-        for process in psutil.process_iter():
-            if process.name().casefold().startswith("dolphin"):
+    process_name = os.environ.get(DME_DOLPHIN_PROCESS_NAME_ENV_VARIABLE)
+    count = 0
+    for process in psutil.process_iter():
+        try:
+            name = process.name().casefold()
+            if process_name:
+                is_dolphin = name == process_name.casefold()
+            elif Utils.is_linux:
+                # KDE Dolphin and dolphin-tool are not emulator instances.
+                is_dolphin = name in {"dolphin.exe", "dolphin-emu", "dolphin-emu-qt2", "dolphin-emu-nogui"}
+            else:
+                is_dolphin = name.startswith("dolphin")
+            if is_dolphin and process.status() not in (
+                psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD
+            ):
                 count += 1
-        return count
-    except Exception as e:
-        print("Failed to get number of dolphin instances")
-        print(e)
-        return 0
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return count
     
