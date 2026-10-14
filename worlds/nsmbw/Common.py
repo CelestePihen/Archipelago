@@ -123,6 +123,15 @@ class ITEM:
         InventoryPow        = "InventoryPowAccessible"
         InventoryPowNoToad  = "InventoryPowAccessibleNoToad"
 
+    class Groups(StrEnum):
+        Powerups    = "Powerups"
+        Unlocks     = "Unlocks"
+        Abilities   = "Abilities"
+        LevelElements = "Level Elements"
+        Enemies        = "Enemies"
+        Worlds          = "Worlds"
+
+
     StarCoin        = "Starcoin"
     Time            = "Time"
     GlitchedLogic   = "Glitched Logic"

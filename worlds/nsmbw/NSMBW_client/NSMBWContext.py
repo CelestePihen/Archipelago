@@ -343,7 +343,7 @@ class NSMBWContext(SuperContext):
 
         #logger.info("Starting Dolphin Connector, attempting to connect to emulator...")
 
-        Utils.async_start(self.run_game())
+        Utils.async_start(self.patch_and_run_game())
         await self.game_loop()
 
     async def game_loop(self):

@@ -125,12 +125,6 @@ class NSMBWSettings(settings.Group):
         """A path that the nsmbw client uses to store data about saves"""
 
 
-    class UTPackPath(settings.OptionalUserFilePath):
-        """Optional path to an external UTpack (not yet created)"""
-        required = False  # You can comment this to force users to have the poptracker map
-        ut_dialog_name = "Select Poptracker pack"  # Optional: customize the dialog message
-        #valid_file_extensions = [".zip"]
-
     class CollectLevel(settings.IntEnum):
         """
         Set this to specify how client should respond to a location being remotely collected
@@ -200,7 +194,6 @@ class NSMBWSettings(settings.Group):
     debug_mode : DebugMode | bool = not Utils.is_frozen()
 
     collect_level : CollectLevel  = CollectLevel(1)
-    ut_pack_path: UTPackPath  = UTPackPath(r"Poptracker_pack_NSMBW.zip")
     save_file_path : SaveFileLocation  = SaveFileLocation("nsmbw")
     allow_gen_impactful_settings : AllowGenDiffSettings | bool = False
     dolphin_process_name : DolphinProcessName = DolphinProcessName("")

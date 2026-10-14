@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from BaseClasses import CollectionState, ItemClassification, MultiWorld, Item, Location, Region
 from NetUtils import JSONMessagePart
 from rule_builder.cached_world import CachedRuleBuilderWorld
@@ -13,6 +15,32 @@ from .Common import *
 from .Utils import cast_object_to_type
 from .items import NSMBWItem
 from .locations import NSMBWLocation, shuffle_level_order, pos_to_level_name, level_name_to_pos
+
+class ItemLayoutSection:
+    name: str
+    items: list[str]
+    orientation: Literal["tb", "lr"]
+    cols: int
+    rows: int
+    item_size: tuple[int, int]
+    item_width: int
+    item_height: int
+
+    def __init__(self, name: str, items: str | list[str],
+                 orientation: Literal["tb", "lr"] = "lr",
+                 cols: int = 5, rows: int = -1,
+                 item_size: tuple[int, int] = (48,48)):
+        self.name = name
+        if isinstance(items, str):
+            self.items = [ items ]
+        else:
+            self.items = items
+        self.orientation = orientation
+        self.cols = cols
+        self.rows = rows
+        self.item_size = item_size
+        self.item_width = item_size[0]
+        self.item_height = item_size[1]
 
 collection_map_no_toad : Dict [str, int] = {}
 collection_map_general : Dict [str, int] = {}
@@ -309,16 +337,55 @@ class NSMBWworld(World):
         except ValueError:
             return 0
 
-    tracker_world: ClassVar = {
+    both_pages = [
+        ItemLayoutSection(name="Powerups", items=ITEM.Groups.Powerups),
+        ItemLayoutSection(name="Unlocks", items=ITEM.Groups.Unlocks),
+        #ItemLayoutSection(name="All items", items="Everything"),
+        #{"name": "All items", "items": "Everything"}
+
+    ]
+
+    tracker_world: ClassVar[dict[str, Any]] = {
+        #"map_page_maps": "maps/maps.json",
+        #"map_page_locations" : "locations/locations.json",
+        #"external_pack_key": "ut_pack_path",
+        #"map_page_setting_key": "{player}_{team}_UT_MAP",
+        #"map_page_index": map_page_index,
+
+        #"map_page_folder": <Name of the folder inside the apworld that has all of the poptracker files in it, used for internal poptracker packs>
+        #"external_pack_key": <optional string that is the name of the setting string that UT reads in order to find the external pop tracker pack, takes priority over internal packs>
+        #"map_page_maps": <Location(s) of the maps.json file(s) relative to the root folder of the pack, may be a list if more than one file exists>
+        #"map_page_locations": <Location(s) of the locations.json file(s) relative to the root folder of the pack, may be a list if more than one file exists>
+        #"map_page_layouts": <Location(s) of the layout.json relative to the root folder of the pack, may be a list if more than one file exists. Mutually exclusive with map_page_groups>
+        #"map_page_groups": <optional list that manually defines the map navigation dropdown structure. Mutually exclusive with map_page_layouts>
+        #"map_page_items": <optional location(s) of the items.json file(s) relative to the root folder of the pack, may be a list if more than one file exists>
+        #"map_page_item_layouts": <option list of ItemLayoutSection items to define the layout of the item tracker>
+        #"map_page_setting_key": <optional tag that informs which data storage key will be watched for auto tabbing>
+        #"map_page_index": <optional function that will control the auto tabbing>
+        #"poptracker_name_mapping": <optional Dict that maps the poptracker section names to the location id as they exist in the datapackage>
+        #"poptracker_entrance_mapping": <optional Dict that maps poptracker section names to AP entrance names for entrance tracking>
+        #"location_setting_key": <optional data storage key used to determine where to place the location indicator>
+        #"location_icon_coords": <optional function used to convert between the map and the value in data storage into coords>
+        #"item_page_items": <optional location(s) of the items.json file(s) relative to the root folder of the pack, may be a list if more than one file exists>
+        #"item_page_item_layouts": <option ItemLayoutSection which defines the layout of items shown on a standalone item page, may be a list if more than one layout configuration is desired>
+        #"map_page_item_layouts_left": <option ItemLayoutSection which defines the layout of items shown on the left side of the map page, may be a list if more than one layout configuration is desired>
+        #"map_page_item_layouts_right": <option ItemLayoutSection which defines the layout of items shown on the right side of the map page, may be a list if more than one layout configuration is desired>
+        #"map_page_item_layouts_bottom": <option ItemLayoutSection which defines the layout of items shown on the bottom of the map page, may be a list if more than one layout configuration is desired>
+        #"poptracker_item_mapping": <optional Dict that maps poptracker item names to the item name as they exist in the datapackage>
+        "map_page_folder": "NSMBW_client/tracker",
         "map_page_maps": "maps/maps.json",
-        "map_page_locations" : "locations/locations.json",
-        "external_pack_key": "ut_pack_path",
+        "map_page_locations": "locations/locations.json",
+
+        "item_page_items" : "items/items.json",
+
         "map_page_setting_key": "{player}_{team}_UT_MAP",
         "map_page_index": map_page_index,
-        #"map_page_folder": "tracker",
-        #"map_page_setting_key" : <optional tag that informs which data storage key will be watched for auto tabbing>
-        #"map_page_index" : <optional function that will control the auto tabbing>
-        #"poptracker_name_mapping" : <optional Dict that maps the poptracker pack names to the location id as they exist in the datapackage >
-        #"location_setting_key" : <optional data storage key used to determine where to place the location indicator>
-        #"location_icon_coords" : <optional function used to convert between the map and the value in data storage into coords>
+
+        "item_page_item_layouts": [
+          ItemLayoutSection(name="Worlds", items=ITEM.Groups.Worlds)
+        ] + both_pages,
+        "map_page_item_layouts_left": [
+        ] + both_pages,
+
     }
+

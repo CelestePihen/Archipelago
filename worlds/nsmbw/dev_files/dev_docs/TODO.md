@@ -41,6 +41,17 @@
   - levelunlock apworld side
 
 
+# internal UT pack
+- redownload wiki img : compress
+  - or generate them myself
+use map visualliser to place out location group : names
+write python script to populate location groups
+-> quick internal pack
+FUTURE
+  - item tracking
+  - draw images for movements
+    - pain is fun
+
 
 ## Playtest
 - bowser_level_unlock 
