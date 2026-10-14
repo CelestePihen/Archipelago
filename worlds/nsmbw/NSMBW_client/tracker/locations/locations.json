@@ -1,0 +1,366 @@
+[
+  {
+    "name": "9-1 Everything",
+    "sections": [
+      {
+        "name": "9-1 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 ",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-1 1up",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 229,
+        "y": 177,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-2 Everything",
+    "sections": [
+      {
+        "name": "9-2 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 1up",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-2 Star Coin 3",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 308,
+        "y": 174,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-3 Everything",
+    "sections": [
+      {
+        "name": "9-3 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 1up",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-3 Star Coin 2",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 392,
+        "y": 173,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-4 Everything",
+    "sections": [
+      {
+        "name": "9-4 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-4 1up",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 466,
+        "y": 181,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-5 Everything",
+    "sections": [
+      {
+        "name": "9-5 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-5 1up",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 456,
+        "y": 98,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-6 Everything",
+    "sections": [
+      {
+        "name": "9-6 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 1up",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-6 clear",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 387,
+        "y": 103,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-7 Everything",
+    "sections": [
+      {
+        "name": "9-7 1up",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 99 coins",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-7 Star Coin 1",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 312,
+        "y": 104,
+        "size": 32
+      }
+    ]
+  },
+  {
+    "name": "9-8 Everything",
+    "sections": [
+      {
+        "name": "9-8 Roulette Block",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 Star Coin 3",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 clear",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 1up",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 Star Coin 1",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 Star Coin 2",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 Red coin Ring",
+        "item_count": 1
+      },
+      {
+        "name": "9-8 99 coins",
+        "item_count": 1
+      }
+    ],
+    "map_locations": [
+      {
+        "map": "world9",
+        "x": 243,
+        "y": 97,
+        "size": 32
+      }
+    ]
+  }
+]

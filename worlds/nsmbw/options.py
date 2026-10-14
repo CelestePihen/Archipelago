@@ -528,7 +528,6 @@ class UseRiivolution(Toggle):
 class LevelShuffle(Choice):
     """
     Shuffles the level order.
-    Requires use_riivolution to be enabled. (default)
     """
     display_name = "Level Shuffle"
     option_off = 0
@@ -581,7 +580,6 @@ class MusicShuffle(Toggle):
     """
     WARNING: Causes caches on some seeds, may need manual removal.
     Shuffles the background music and sound effects.
-    Requires use_riivolution to be enabled. (default)
     """
     display_name = "Music Shuffle"
     default = False
@@ -590,7 +588,6 @@ class MusicShuffle(Toggle):
 class BackgroundShuffle(Toggle):
     """
     Shuffles the level backgrounds.
-    Requires use_riivolution to be enabled. (default)
     """
     visibility = Visibility.none
 
@@ -605,7 +602,6 @@ class PalletShuffle(Toggle):
 class TileSheetShuffle(Toggle):
     """
     Shuffles the Pa0_jyotyu textures, changes the looks of ?-blocks and brick blocks
-    Requires use_riivolution to be enabled. (default)
     """
     display_name = "Tile Sheet Shuffle"
 
@@ -734,7 +730,6 @@ class NSMBWOptions(PerGameCommonOptions):
     modifier_multiplier_percentage : ModifierMultiplierPercentage
 
     enemy_shuffle : EnemyShuffle
-    use_riivolution : UseRiivolution
     music_shuffle : MusicShuffle
     background_shuffle : BackgroundShuffle
     pallet_shuffle : PalletShuffle
@@ -933,12 +928,6 @@ def adjust_options(world : "NSMBWworld"): # cannot type check because circular i
         print(f"(NSMBW generation warning) Option progressive for hint_movie_shop_price_logic is not implemented, setting to default instead.") # raise OptionError
         world.options.hint_movie_shop_price_logic.value = HintMovieShopPriceLogic.default
 
-
-    if (world.options.use_riivolution.value == False):
-        if (world.options.level_shuffle.value or world.options.music_shuffle.value or
-            world.options.background_shuffle.value or world.options.pallet_shuffle.value or
-            world.options.tile_sheet_shuffle.value or world.options.roulet_block.value):
-            raise OptionError(f"(NSMBW generation error) Cannot use an option that require riivolution patch without it being enabled")
 
     if world.options.alternative_goal.value == AlternativeGoal.option_hintmovies:
         if not world.options.hint_movie_sanity.value:

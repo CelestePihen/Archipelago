@@ -93,11 +93,7 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         if self.ctx.username is None:
             logger.info(f"Connect before auto start")
             return
-        if self.ctx.slot_data["use_riivolution"]:
-            Utils.async_start(self.ctx.patch_and_run_game(True))
-
-        else:
-            Utils.async_start(self.ctx.run_game(True))
+        Utils.async_start(self.ctx.patch_and_run_game(True))
 
     def _cmd_reapply_checks(self):
         """
@@ -329,13 +325,6 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         assert value in ["0", "1", "2"], "Allowed values are 0, 1 or 2"
         Utils.get_settings()["nsmbw_settings"]["collect_level"] = value
 
-    def _cmd_toggle_auto_start(self):
-        """
-        Toggles the auto open setting in host.yaml, is constant for all multiworld.
-        """
-        Utils.get_settings()["nsmbw_settings"]["auto_start"] ^= True
-        logger.info(f"Auto clear open: {Utils.get_settings()['nsmbw_settings']['auto_start']}")
-
     def _cmd_toggle_auto_start_riivolution(self):
         """
         Toggles the auto open setting in host.yaml, is constant for all multiworld.
@@ -356,6 +345,13 @@ class NSMBWCommandProcessor(SuperClientCommandProcessor):
         """
         Utils.get_settings()["nsmbw_settings"]["auto_save"] ^= True
         logger.info(f"Auto save: {Utils.get_settings()['nsmbw_settings']['auto_save']}")
+
+    def _cmd_toggle_auto_save_savestates(self):
+        """
+        Toggles the auto_save_savestates in host.yaml, is constant for all multiworld.
+        """
+        Utils.get_settings()["nsmbw_settings"]["auto_save_savestates"] ^= True
+        logger.info(f"Auto Save Savestates: {Utils.get_settings()['nsmbw_settings']['auto_save_savestates']}")
 
     def _cmd_toggle_auto_close(self):
         """

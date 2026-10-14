@@ -37,9 +37,13 @@ for world_num in range(1,10+1): # worlds
             LOCATION_NAME_TO_ID.update({name_block_sanity(world_num,level_num, i) : 2_000_000 + 100_000 * world_num + 1_000 * level_num + i})
             block_set |= {name_block_sanity(world_num, level_num, i)}
 
+        if block_set:
+            LOCATION_NAME_GROUPS.update({
+                f"{name_base(world_num, level_num)} blocks Everything": block_set,
+            })
+
         LOCATION_NAME_GROUPS.update({
             f"Starcoins World{world_num} Level{level_num}": sc_set,
-            f"{name_base(world_num,level_num)} blocks Everything"
             f"{name_base(world_num, level_num)} Everything" : sc_set | block_set | {
                 name_level(world_num, level_num),
                 name_1ups(world_num, level_num),

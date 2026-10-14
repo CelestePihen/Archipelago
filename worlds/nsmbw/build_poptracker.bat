@@ -1,1 +1,0 @@
-tar -a -c -v -f Poptracker_pack_NSMBW.zip -C Poptracker_pack_NSMBW *

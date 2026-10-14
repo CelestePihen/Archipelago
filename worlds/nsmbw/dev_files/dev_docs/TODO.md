@@ -29,11 +29,28 @@
   - I think just a setting that can remove up to 5 levels is fine
 - Have 2 lists during enterence rando creation: 1 for placement pool and 1 for level pool, so can seperate them
 - create map and item tracker?
+- Remove use_riivolution
+- Why is inventory pow 10 so often unreachable
+- Clearmod : no text argumentet, so can get run often
+- /bowserlock : print all reasons
+- Lock bowser from path patch isntead of client
+
 
 - I think it's not bad bad idea to have an option with just world unlocks rather then 2 progressive worlds
 - WorldsUnlocks apworld side
   - levelunlock apworld side
 
+
+# internal UT pack
+- redownload wiki img : compress
+  - or generate them myself
+use map visualliser to place out location group : names
+write python script to populate location groups
+-> quick internal pack
+FUTURE
+  - item tracking
+  - draw images for movements
+    - pain is fun
 
 
 ## Playtest
@@ -73,7 +90,11 @@
 - Go to next world after beating airship
 - large fuzzing error : why ? level_shuffle mostly off
 - freez on world9 level clear
-
+  - Level patch 8-A
+- /explain_more broken
+- 7-G needs door to secret exit
+  - Copy paste normal level req to secret exit
+  - more levels are missing 
 
 
 ## Short term

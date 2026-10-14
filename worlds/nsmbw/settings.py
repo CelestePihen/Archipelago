@@ -106,9 +106,6 @@ class NSMBWSettings(settings.Group):
         on Windows found in '%appdata%/Dolphin Emultator/Load/Riivolution'
         """
 
-    class AutoStartGame(settings.Bool):
-        """Enable if you want to open the game automatically"""
-
     class AutoStartRiivolution(settings.Bool):
         """Enable if you want to start the game automatically after a riivolution patch have been applied"""
 
@@ -118,18 +115,15 @@ class NSMBWSettings(settings.Group):
     class AutoSaveGame(settings.Bool):
         """Enable if you want to save the game automatically every 5 minutes"""
 
+    class AutoSaveSaveStates(settings.Bool):
+        """Enable if you want the save command to also capture a screenshot"""
+
     class AutoCloseGame(settings.Bool):
         """Enable if you want to close the game automatically"""
 
     class SaveFileLocation(settings.OptionalUserFolderPath): #Local
         """A path that the nsmbw client uses to store data about saves"""
 
-
-    class UTPackPath(settings.OptionalUserFilePath):
-        """Optional path to an external UTpack (not yet created)"""
-        required = False  # You can comment this to force users to have the poptracker map
-        ut_dialog_name = "Select Poptracker pack"  # Optional: customize the dialog message
-        #valid_file_extensions = [".zip"]
 
     class CollectLevel(settings.IntEnum):
         """
@@ -191,16 +185,15 @@ class NSMBWSettings(settings.Group):
 
     game_file_path: GameFilePath  = GameFilePath(r"New SUPER MARIO BROS. Wii.iso")
 
-    auto_start: AutoStartGame | bool = False
     auto_start_riivolution : AutoStartRiivolution | bool = True
     auto_load : AutoLoadState | bool = False
     auto_save: AutoSaveGame | bool = True
+    auto_save_savestates: AutoSaveSaveStates | bool = False
     auto_close: AutoCloseGame | bool = False
 
     debug_mode : DebugMode | bool = not Utils.is_frozen()
 
     collect_level : CollectLevel  = CollectLevel(1)
-    ut_pack_path: UTPackPath  = UTPackPath(r"Poptracker_pack_NSMBW.zip")
     save_file_path : SaveFileLocation  = SaveFileLocation("nsmbw")
     allow_gen_impactful_settings : AllowGenDiffSettings | bool = False
     dolphin_process_name : DolphinProcessName = DolphinProcessName("")

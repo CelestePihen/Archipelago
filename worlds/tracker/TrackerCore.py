@@ -9,7 +9,7 @@ from Options import PerGameCommonOptions
 from BaseClasses import CollectionState, MultiWorld, LocationProgressType, ItemClassification
 from worlds import AutoWorld
 from collections import Counter, defaultdict
-from . import TrackerWorld, UTMapTabData, CurrentTrackerState, UT_VERSION, DeferredEntranceMode
+from . import TrackerWorld, UTMapTabData, CurrentTrackerState, UT_VERSION, DeferredEntranceMode, TrackerException
 import sys
 from Utils import __version__, output_path, open_filename
 
@@ -98,7 +98,6 @@ class TrackerCore():
         self._log_to_tab = log_to_tab
     
     def set_clear_page(self, clear_page:Optional[Callable[[],None]]):
-        self.log_lines = {}
         self._clear_page = clear_page
     
     def set_get_ut_color(self,get_ut_color:Optional[Callable[[str],str]]):
@@ -111,7 +110,7 @@ class TrackerCore():
     
     def set_page(self, log_line: TrackerLogLine):
         group_priority: int = self.sorting_priorities[log_line.group.value]
-        self.log_lines = {group_priority: log_line}
+        self.log_lines = {group_priority: [log_line]}
         if self._set_page:
             self._set_page(self.log_line_to_ui_string(log_line))
     
@@ -136,6 +135,8 @@ class TrackerCore():
             self._log_to_tab(line,sort)
 
     def log_all_to_tab(self):
+        if self._clear_page:
+            self._clear_page()
         seen_regions: list[str] = []
         for group in sorted(self.log_lines.keys()):
             for log_line in self.log_lines[group]:
@@ -366,6 +367,11 @@ class TrackerCore():
                 temp_items = [item for item in items if item.code is None]
                 temp_precollect[player_id] = temp_items
             self.multiworld.precollected_items = temp_precollect
+        except TrackerException as e:
+            self.multiworld = None
+            self.tracker_disabled = True
+            self.gen_error = e.message
+            self.set_page(TrackerLogLine("The world has informed UT that your options are incompatible, for more infomation check /faris_asked","",TrackerLogLineGroup.UT_ERROR))
         except Exception as e:
             tb = traceback.format_exc()
             self.gen_error = tb
@@ -586,21 +592,28 @@ class TrackerCore():
                     self.re_gen_passthrough = {self.game: slot_data}
                     self.run_generator(raw_slot_data, tempdir)
                     if self.multiworld is None:
-
-                        self.add_log_line(TrackerLogLine("Internal world was not able to be generated, check your yamls and relaunch", "", TrackerLogLineGroup.UT_STATUS))
-                        self.add_log_line(TrackerLogLine("If this issue persists, reproduce with the debug launcher and post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+                        if not self.tracker_disabled:
+                            self.add_log_line(TrackerLogLine("Internal world was not able to be generated, check your yamls and relaunch", "", TrackerLogLineGroup.UT_STATUS))
+                            self.add_log_line(TrackerLogLine("If this issue persists, reproduce with the debug launcher and post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+                        self.sort_log_lines()
+                        self.log_all_to_tab()
                         return
                     world = self.get_current_world()
                 self.regen_slots(world, slot_data, tempdir)
                 if self.multiworld is None:
-                    self.add_log_line(TrackerLogLine("Internal world was not able to be generated, check your yamls and relaunch", "", TrackerLogLineGroup.UT_STATUS))
-                    self.add_log_line(TrackerLogLine("If this issue persists, reproduce with the debug launcher and post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+                    if not self.tracker_disabled:
+                        self.add_log_line(TrackerLogLine("Internal world was not able to be generated, check your yamls and relaunch", "", TrackerLogLineGroup.UT_STATUS))
+                        self.add_log_line(TrackerLogLine("If this issue persists, reproduce with the debug launcher and post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+                    self.sort_log_lines()
+                    self.log_all_to_tab()
                     return
 
         else:
             if self.launch_multiworld is None:
                 self.add_log_line(TrackerLogLine("Internal world was not able to be generated, check your yamls and relaunch", "", TrackerLogLineGroup.UT_STATUS))
                 self.add_log_line(TrackerLogLine("If this issue persists, reproduce with the debug launcher and post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+                self.sort_log_lines()
+                self.log_all_to_tab()
                 return
 
             if self.slot_name in self.launch_multiworld.world_name_lookup:
@@ -609,19 +622,20 @@ class TrackerCore():
                     self.multiworld = self.launch_multiworld
                     self.player_id = internal_id
                     self.regen_slots(self.get_current_world(), raw_slot_data)
-                elif self.launch_multiworld.worlds[internal_id].game == "Archipelago":
-                    if not self.regen_slots(connected_cls, raw_slot_data):
-                        raise "TODO: add error - something went very wrong with interpret_slot_data"
+                elif False: #For those who came before
+                    raise "We remember o7"
                 else:
                     world_dict = {name: self.launch_multiworld.worlds[slot].game for name, slot in self.launch_multiworld.world_name_lookup.items()}
-                    tb = f"Tried to match game '{self.game}'" + \
-                            f" to slot name '{self.slot_name}'" + \
+                    tb = f"Game missmatch for connected game '{self.game}'" + \
+                            f" and slot name '{self.slot_name}'" + \
                             f" with known slots {world_dict}"
                     self.gen_error = tb
                     self.logger.error(tb)
+                    self.add_log_line(TrackerLogLine("Unable to match game, correct your yamls", "", TrackerLogLineGroup.UT_ERROR))
                     return
             else:
                 known_slots = [f"{slot_name} ({self.launch_multiworld.worlds[slot_id].game})" for slot_name, slot_id in self.launch_multiworld.world_name_lookup.items() if self.launch_multiworld.worlds[slot_id].game != "Archipelago"]
+                self.add_log_line(TrackerLogLine("Unable to find YAML, please install your yaml in the correct folder", "", TrackerLogLineGroup.UT_ERROR))
                 if known_slots:
                     self.logger.error(f"Player's Yaml not in tracker's list. Known players: {known_slots}")
                 else:
@@ -630,3 +644,10 @@ class TrackerCore():
         if self.multiworld:
             world = self.get_current_world()
             self.location_alias_map = getattr(world, "location_id_to_alias", {})
+        else:
+            if not self.tracker_disabled:
+                self.add_log_line(TrackerLogLine("Yamlless world was not able to be generated, something very bad has happened", "", TrackerLogLineGroup.UT_STATUS))
+                self.add_log_line(TrackerLogLine("If you can reproduce with the debug launcher, post the error message to the discord channel", "", TrackerLogLineGroup.UT_STATUS))
+            self.sort_log_lines()
+            self.log_all_to_tab()
+            return
