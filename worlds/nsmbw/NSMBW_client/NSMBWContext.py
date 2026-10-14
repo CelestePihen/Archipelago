@@ -47,12 +47,6 @@ if error is not None:
     logger.info(error)
 
 
-class ModifiedState(IntEnum):
-    UNMODIFIED = 0
-    MODWOLD1_8 = 1
-    MODALLWORLDS = 2
-
-
 modifier_type_litteral = Literal[ITEM.TRAPS.ThrowTrap, ITEM.TRAPS.ReverseControlTrap, ITEM.TRAPS.GoombaTrap, ITEM.TRAPS.MovementLockTrap,
     ITEM.FILLER.SuperSpeed, ITEM.TRAPS.SlowTrap, ITEM.TRAPS.GravityTrap, ITEM.FILLER.LowGravity, ITEM.TRAPS.TimeTrap]
 
@@ -91,7 +85,6 @@ class NSMBWContext(SuperContext):
     #Created for NSMBW
     locations_handled : List[int]
     completed_levelstats : List[List[bytes]]
-    moded_levelstats : ModifiedState = ModifiedState.UNMODIFIED
     prev_powerup : List[bytes]
     starcoin_count : int = 0
     completed_levels : List[str]
@@ -151,7 +144,6 @@ class NSMBWContext(SuperContext):
         self.prev_powerup = list([b'\x00' for _ in range(PLAYER_COUNT)])
 
         self.completed_levelstats = list([list([b"\x00" for _ in range(LEVELS_PER_WORLD[i])]) for i in range(9)])
-        self.moded_levelstats = ModifiedState.UNMODIFIED
 
         self.prev_sent_locations = set()
         self.prossessed_errors = []
@@ -237,11 +229,10 @@ class NSMBWContext(SuperContext):
                 if tracker_loaded:
                     args.setdefault("slot_data", dict())
 
-                if self.slot_data["use_riivolution"]:
-                    Utils.async_start(self.patch_and_run_game())
+                Utils.async_start(self.patch_and_run_game())
 
                 self.game_interface.slot_data = self.slot_data
-                self.game_interface.auto_clear_cache = not self.slot_data["use_riivolution"]
+                self.game_interface.auto_clear_cache = False
 
                 commandprocessor = self.command_processor(self)
                 commandprocessor._cmd_versions()
@@ -482,8 +473,7 @@ class NSMBWContext(SuperContext):
         self.game_interface.update_check_sum()
         if time.time() >= self.save_time + 60 * 5 and Utils.get_settings()["nsmbw_settings"].auto_save:
             self.save_time = time.time()
-            if self.moded_levelstats == ModifiedState.UNMODIFIED:
-                await self.handle_save()
+            await self.handle_save()
 
         await self.ut_auto_tab()
         await self.game_interface.patch_runtime_on_load() # unsure where to put this, just needs to run once, but good if does multiple times if not applied correctly
@@ -511,7 +501,7 @@ class NSMBWContext(SuperContext):
         if self.username is None:
             logger.info("Connect to sever before saving")
             return
-        if Utils.get_settings()["nsmbw_settings"].auto_save:
+        if Utils.get_settings()["nsmbw_settings"].auto_save_savestates:
             await asyncio.sleep(0.5)
             self.game_interface.save_state(self.save_slot)
             await asyncio.sleep(0.5)
@@ -595,8 +585,6 @@ class NSMBWContext(SuperContext):
         match self.slot_data["alternative_goal"]:
             case AlternativeGoal.option_bowser:
 
-                if self.moded_levelstats != ModifiedState.UNMODIFIED:
-                    return
                 level_bowcast_condit = self.game_interface.get_level_stats(8,9)
                 #print(level_bowcast_condit)
                 #stats_in_bytes = #level_bowcast_condit[0] & b'\x10\x00\x00\x00'[0]
@@ -617,9 +605,6 @@ class NSMBWContext(SuperContext):
                     await self.send_goal()
 
             case AlternativeGoal.option_all_levels:
-                if self.moded_levelstats != ModifiedState.UNMODIFIED:
-                    return
-
                 level_req = (self.get_count_levels_cleared() >= self.slot_data["bowser_level_unlock"])
 
                 if level_req:
@@ -681,13 +666,8 @@ class NSMBWContext(SuperContext):
 
     async def check_starcoins(self):
         checked_locations = []
-        world_nums = []
-        if self.moded_levelstats == ModifiedState.UNMODIFIED:
-            world_nums = range(1,9+1)
-        if self.moded_levelstats == ModifiedState.MODWOLD1_8:
-            world_nums = [9]
 
-        if self.game_interface.get_world_level_num_in_level()[0] not in world_nums:
+        if self.game_interface.get_world_level_num_in_level()[0] not in range(1,9+1):
             return []
 
 
@@ -893,12 +873,8 @@ class NSMBWContext(SuperContext):
         # check if level is cleared
         level = self.game_interface.get_world_level_num_in_level()
 
-        world_nums = []
-        if self.moded_levelstats == ModifiedState.UNMODIFIED:
-            world_nums = range(1, 9 + 1)
-        if self.moded_levelstats == ModifiedState.MODWOLD1_8:
-            world_nums = [9]
-        if level[0] not in world_nums:
+
+        if level[0] not in range(1, 9 + 1):
             return []
 
 
@@ -915,98 +891,96 @@ class NSMBWContext(SuperContext):
                     print(f"You collected a check for completing {level_name}")
 
 
-        if self.moded_levelstats == ModifiedState.UNMODIFIED:
+        # secret exits
+        for secret_exit in SECRET_EXIT:
+            world_num = secret_exit.world
+            level_num = secret_exit.level
+            if (world_num, level_num) != randoed_level:
+                continue
 
-            # secret exits
-            for secret_exit in SECRET_EXIT:
-                world_num = secret_exit.world
-                level_num = secret_exit.level
-                if (world_num, level_num) != randoed_level:
-                    continue
+            exit_name = name_secret(secret_exit)
+            level_stats = bytes_to_int(self.game_interface.get_level_stats(world_num, level_num))
 
-                exit_name = name_secret(secret_exit)
-                level_stats = bytes_to_int(self.game_interface.get_level_stats(world_num, level_num))
-
-                byte_to_check : int
-                if secret_exit.exit_type == 1:
-                    byte_to_check = 0x10
-                elif secret_exit.exit_type == 2:
-                    byte_to_check = 0x20
-                else:
-                    raise ValueError(f"Something is wrong with SECRET_EXIT, {secret_exit} not in {SECRET_EXIT}")
+            byte_to_check : int
+            if secret_exit.exit_type == 1:
+                byte_to_check = 0x10
+            elif secret_exit.exit_type == 2:
+                byte_to_check = 0x20
+            else:
+                raise ValueError(f"Something is wrong with SECRET_EXIT, {secret_exit} not in {SECRET_EXIT}")
 
 
-                if level_stats & byte_to_check == byte_to_check:
-                    if not NSMBWworld.location_name_to_id[exit_name] in self.locations_handled:
-                        checked_locations.append(NSMBWworld.location_name_to_id[exit_name])
-                        self.completed_levels.append(exit_name)
-                        print(f"You collected a check for {exit_name}")
-                    if not (exit_name in self.unlocked_secret_exits):
-                        self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats - byte_to_check,1))
-                elif (exit_name in self.unlocked_secret_exits) and (exit_name in self.completed_levels):
-                    self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + byte_to_check, 1))
-                    self.completed_levels.remove(exit_name)
-                    logger.info(f"Exit {exit_name} have been unlocked")
+            if level_stats & byte_to_check == byte_to_check:
+                if not NSMBWworld.location_name_to_id[exit_name] in self.locations_handled:
+                    checked_locations.append(NSMBWworld.location_name_to_id[exit_name])
+                    self.completed_levels.append(exit_name)
+                    print(f"You collected a check for {exit_name}")
+                if not (exit_name in self.unlocked_secret_exits):
+                    self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats - byte_to_check,1))
+            elif (exit_name in self.unlocked_secret_exits) and (exit_name in self.completed_levels):
+                self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + byte_to_check, 1))
+                self.completed_levels.remove(exit_name)
+                logger.info(f"Exit {exit_name} have been unlocked")
 
-            for world_num in range(1,8+1):
+        for world_num in range(1,8+1):
 
-                #tower logc?
-                level_name = name_tower_clear(world_num)
-                level_num = 7
-                level_num += 1 if world_num in  [7,8] else 0
+            #tower logc?
+            level_name = name_tower_clear(world_num)
+            level_num = 7
+            level_num += 1 if world_num in  [7,8] else 0
+            level_stats = self.game_interface.get_level_stats(world_num, level_num)[0]
+            if level_stats & 0x10 == 0x10:
+                if not (NSMBWworld.location_name_to_id[level_name] in self.locations_handled):
+                    checked_locations.append(NSMBWworld.location_name_to_id[level_name])
+                if unlocked_worlds[world_num-1] <= 1:
+                    if not (level_name in self.completed_levels):
+                        self.completed_levels.append(level_name)
+                    #self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x27,1))
+                    logger.info(f"You collected a check for completing {level_name}, to unlock the rest of this world, receive its AP-item.")
+            #else:
+            #    if unlocked_worlds[world_num-1] >= 2:
+            #        if level_name in self.completed_levels:
+            #            self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + 0x10,1))
+            #            self.completed_levels.remove(level_name)
+            #            logger.info(f"Second half of world {world_num} is unlocked")
+            #            # if reset this value then maybe will not move to next world
+
+
+            #castle logic
+            # and logic for completing world
+            if world_num != 8:
+                level_name = name_world_clear(world_num)
+                level_num = 8 # should make dynamic
+                level_num += 1 if world_num in  [4,6,7,8] else 0
                 level_stats = self.game_interface.get_level_stats(world_num, level_num)[0]
                 if level_stats & 0x10 == 0x10:
                     if not (NSMBWworld.location_name_to_id[level_name] in self.locations_handled):
                         checked_locations.append(NSMBWworld.location_name_to_id[level_name])
-                    if unlocked_worlds[world_num-1] <= 1:
-                        if not (level_name in self.completed_levels):
-                            self.completed_levels.append(level_name)
-                        #self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x27,1))
-                        logger.info(f"You collected a check for completing {level_name}, to unlock the rest of this world, receive its AP-item.")
-                #else:
-                #    if unlocked_worlds[world_num-1] >= 2:
-                #        if level_name in self.completed_levels:
-                #            self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats + 0x10,1))
-                #            self.completed_levels.remove(level_name)
-                #            logger.info(f"Second half of world {world_num} is unlocked")
-                #            # if reset this value then maybe will not move to next world
-
-
-                #castle logic
-                # and logic for completing world
-                if world_num != 8:
-                    level_name = name_world_clear(world_num)
-                    level_num = 8 # should make dynamic
-                    level_num += 1 if world_num in  [4,6,7,8] else 0
-                    level_stats = self.game_interface.get_level_stats(world_num, level_num)[0]
-                    if level_stats & 0x10 == 0x10:
-                        if not (NSMBWworld.location_name_to_id[level_name] in self.locations_handled):
-                            checked_locations.append(NSMBWworld.location_name_to_id[level_name])
-                            logger.info(f"You collected a check for {level_name}, to unlock the next world, receive its AP-item.")
-                        # do not need to acount for this no longer
-                        #self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x07, 1))
-                        if not level_name in self.completed_levels:
-                            self.completed_levels.append(level_name)
+                        logger.info(f"You collected a check for {level_name}, to unlock the next world, receive its AP-item.")
+                    # do not need to acount for this no longer
+                    #self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats &  0x07, 1))
+                    if not level_name in self.completed_levels:
+                        self.completed_levels.append(level_name)
 
 
 
-            # this code is for unlocking the final level
-            completed_worlds = self.get_completed_worlds()
-            bowser_unlock = self.get_bow_unlocked()
-            level_name = name_level(8,10)
-            level_stats = self.game_interface.get_level_stats(8,10)[0]
-            # runs if to disable bowsers castle if completed 8-arship and not comprehended unlock conditions
-            if  level_stats & 16 == 16 and (not bowser_unlock):
-                if not (level_name in self.completed_levels):
-                    self.completed_levels.append(level_name)
-                self.game_interface.set_level_stats(8, 10, int_to_bytes(level_stats &  0x27, 1))
-                logger.info(f"Completed 8-Airship but does not meet requirements for unlocking bowser (Require {self.slot_data['bowser_star_unlock']} star coins and you have {self.starcoin_count}, Require {self.slot_data['bowser_world_unlock']} worlds completed and you have {completed_worlds}).")
-            # if previously completed 8-arship and now unlocked bowser
-            if (not (level_stats & 0x10 == 0x10)) and (bowser_unlock):
-                if level_name in self.completed_levels:
-                    self.completed_levels.remove(level_name)
-                    logger.info("Bowsers castle is now unlocked")
-                    self.game_interface.set_level_stats(8, 10, int_to_bytes(level_stats + 0x10, 1))
+        # this code is for unlocking the final level
+        completed_worlds = self.get_completed_worlds()
+        bowser_unlock = self.get_bow_unlocked()
+        level_name = name_level(8,10)
+        level_stats = self.game_interface.get_level_stats(8,10)[0]
+        # runs if to disable bowsers castle if completed 8-arship and not comprehended unlock conditions
+        if  level_stats & 16 == 16 and (not bowser_unlock):
+            if not (level_name in self.completed_levels):
+                self.completed_levels.append(level_name)
+            self.game_interface.set_level_stats(8, 10, int_to_bytes(level_stats &  0x27, 1))
+            self.log_color(f"Completed 8-Airship but does not meet requirements for unlocking bowser (Require {self.slot_data['bowser_star_unlock']} star coins and you have {self.starcoin_count}, Require {self.slot_data['bowser_world_unlock']} worlds completed and you have {completed_worlds}).", "blue")
+        # if previously completed 8-arship and now unlocked bowser
+        if (not (level_stats & 0x10 == 0x10)) and (bowser_unlock):
+            if level_name in self.completed_levels:
+                self.completed_levels.remove(level_name)
+                self.log_color("Bowsers castle is now unlocked", "blue")
+                self.game_interface.set_level_stats(8, 10, int_to_bytes(level_stats + 0x10, 1))
         self.locations_handled += checked_locations
         return checked_locations
 
@@ -1224,16 +1198,8 @@ class NSMBWContext(SuperContext):
 
 
 
-
     async def handle_set_sc_count(self):
-        starcoin_count = self.starcoin_count
-        # maybe isnt regestry for starcoin?
 
-        #check if in peach castle, then overwrite all starcoins
-
-        #current_world_num = self.game_interface.get_world_level() # get_level_world? # only uppdate when in level
-        #current_world_num = self.game_interface.get_level_world() # uppdate when in level
-        #print("world num",current_world_num)
         current_level_num = self.game_interface.get_level_level()  #only update when in level
 
         current_world_num = self.game_interface.get_map_world()[0]+1
@@ -1246,78 +1212,17 @@ class NSMBWContext(SuperContext):
         #print(self.connection_state== ConnectionState.IN_GAME)
 
         if at_peach_worldmap:
-            if self.slot_data["use_riivolution"]:
-                match self.slot_data["hint_movie_shop_price_logic"]:
-                    case HintMovieShopPriceLogic.option_free:
-                        self.game_interface.set_peach_castle_sc(231)
-                    case HintMovieShopPriceLogic.option_ordered:
-                        self.game_interface.set_peach_castle_sc(starcoin_count * self.slot_data["starcoin_shop_multiplier"])
-                    case HintMovieShopPriceLogic.option_all:
-                        self.game_interface.set_peach_castle_sc(starcoin_count * self.slot_data["starcoin_shop_multiplier"])
-                    case HintMovieShopPriceLogic.option_progressive:
-                        raise NotImplementedError
-                    case _:
-                        raise NotImplementedError
-                return
-
-            self.moded_levelstats = ModifiedState.MODALLWORLDS
-            i = 0
-            for world_num in range(1, 9 + 1):
-                for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
-                    level_stats = self.game_interface.get_level_stats(world_num,level_num)[0]
-                    level_stats &= 0x30 # keeps level completion
-                    if (i * 3 + 3  <= starcoin_count * self.slot_data["starcoin_shop_multiplier"]) or (self.slot_data["hint_movie_shop_price_logic"] == HintMovieShopPriceLogic.option_free):
-                        level_stats |= 0x07
-                    elif 3 * i + 2 == starcoin_count * self.slot_data["starcoin_shop_multiplier"]:
-                        level_stats |= 0x03
-                    elif 3 * i + 1 == starcoin_count * self.slot_data["starcoin_shop_multiplier"]:
-                        level_stats |= 0x01
-                    else:
-                        level_stats |= 0x00
-                    if world_num != 9:
-                        if name_tower_clear(world_num) in self.completed_levels:
-                            if level_num == (7 + 1 if world_num in [7,8] else 0):
-                                level_stats |= 0x30
-                        if name_world_clear(world_num) in self.completed_levels:
-                            if level_num == (8 + 1 if world_num in [7,8] else 0):
-                                level_stats |= 0x30
-                    if name_level(world_num,level_num) in self.completed_levels:
-                       level_stats |= 0x30
-                    if (name_secret(SecretExit(world_num,level_num,None,1, None)) in self.completed_levels) or (name_secret(SecretExit(world_num,level_num,None,2, None)) in self.completed_levels):
-                        level_stats |= 0x30
-                    self.game_interface.set_level_stats(world_num, level_num, int_to_bytes(level_stats, 1))
-                    i += 1
-        elif current_world_num == 9:
-            if self.slot_data["use_riivolution"]:
-                return
-            if self.moded_levelstats == ModifiedState.UNMODIFIED:
-                self.moded_levelstats = ModifiedState.MODWOLD1_8
-                for level_num in range(1, 8+1):
-                    unlocked_level = self.starcoin_count >= self.slot_data["star_coin_req_per_world_9_level"][level_num-1]
-                    data = b'\x07' if unlocked_level else b'\x00'
-                    for world_level_num in range(1,LEVELS_PER_WORLD[level_num-1]+1):
-                        self.game_interface.set_level_stats(level_num,world_level_num, data)
-        elif current_world_num != 9:
-            #this removes modification
-           if self.moded_levelstats != ModifiedState.UNMODIFIED:
-               world_nums = []
-               if self.moded_levelstats == ModifiedState.MODWOLD1_8:
-                   world_nums = range(1,8+1)
-               elif self.moded_levelstats == ModifiedState.MODALLWORLDS:
-                   world_nums = range(1,9+1)
-               for world_num in world_nums:
-                   for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
-                       data = self.completed_levelstats[world_num - 1][level_num - 1]
-                       self.game_interface.set_level_stats(world_num, level_num, data)
-                       self.moded_levelstats = ModifiedState.UNMODIFIED
-           else:
-               #this saves data if game is modified in future
-               for world_num in range(1, 9 + 1):
-                   for level_num in range(1, LEVELS_PER_WORLD[world_num - 1] + 1):
-                       self.completed_levelstats[world_num - 1][level_num - 1] = self.game_interface.get_level_stats(world_num,
-                                                                                                                  level_num)
-        else:
-            print("this branch of setting starcoin shouldn't happen")
+            match self.slot_data["hint_movie_shop_price_logic"]:
+                case HintMovieShopPriceLogic.option_free:
+                    self.game_interface.set_peach_castle_sc(231)
+                case HintMovieShopPriceLogic.option_ordered:
+                    self.game_interface.set_peach_castle_sc(self.starcoin_count * self.slot_data["starcoin_shop_multiplier"])
+                case HintMovieShopPriceLogic.option_all:
+                    self.game_interface.set_peach_castle_sc(self.starcoin_count * self.slot_data["starcoin_shop_multiplier"])
+                case HintMovieShopPriceLogic.option_progressive:
+                    raise NotImplementedError
+                case _:
+                    raise NotImplementedError
 
 
 
@@ -1788,7 +1693,7 @@ class NSMBWContext(SuperContext):
 
 
     async def patch_and_run_game(self, override = False):
-        auto_start: bool = get_settings()["nsmbw_settings"].auto_start_riivolution
+        auto_start_riivolution: bool = get_settings()["nsmbw_settings"].auto_start_riivolution
         auto_load : bool = get_settings()["nsmbw_settings"].auto_load
         input_iso_path: str = get_settings()["nsmbw_settings"].game_file_path
         try:
@@ -1806,7 +1711,7 @@ class NSMBWContext(SuperContext):
             assert self.patcher.shortcut_path.exists(), "need to have created shortcut successfully"
 
             if dolphin_interface_client.assert_no_running_dolphin():
-                if auto_start or override:
+                if auto_start_riivolution or override:
                     if ((Path(get_settings()['nsmbw_settings'].save_file_path) / "nsmbw_saves" / f"{self.seed_name}.json").exists()) and auto_load:
                         rii_path = self.patcher.output_path.parent.parent.parent
                         save_state_file = rii_path / "StateSaves" / f"{self.patcher.region}.s0{self.save_slot}"
@@ -1829,20 +1734,6 @@ class NSMBWContext(SuperContext):
             logger.info(traceback.format_exc())
             self.log_color(f"Patching error: {e}", "red")
 
-    async def run_game(self, start_override = False):
-        auto_start: bool = get_settings()["nsmbw_settings"].auto_start
-
-
-        if dolphin_interface_client.assert_no_running_dolphin():
-            if auto_start or start_override:
-                gamefile: str = get_settings()["nsmbw_settings"].game_file_path
-
-                Utils.open_file(gamefile)
-                logger.error("Failed to auto start dolphin, make sure your file path is correct")
-        else:
-            logger.info(f"Please close other dolphin instances")
-
-        await asyncio.sleep(35)
 
     async def detect_dolphin_settings(self):
         try:
@@ -1853,22 +1744,6 @@ class NSMBWContext(SuperContext):
             config = ConfigParser()
             config.read(Dolphin)
 
-            if self.slot_data["use_riivolution"] == False:
-                HotkeysRequireFocus = config.getboolean("General", "HotkeysRequireFocus")
-                if HotkeysRequireFocus != False:
-                    self.log_color("Please turn of HotkeysRequireFocus in dolphin", "red")
-
-
-                Hotkeys = settings_path / "Hotkeys.ini"
-                config = ConfigParser()
-                config.read(Hotkeys)
-                load1 = config.get("Hotkeys", f"Load State/Load State Slot {1}")
-                load2 = config.get("Hotkeys", f"Load State/Load State Slot {1}")
-                save1 = config.get("Hotkeys", f"Save State/Save State Slot {1}")
-                save2 = config.get("Hotkeys", f"Save State/Save State Slot {1}")
-
-                if load1 != f"F{1}" or load2 != f"F{1}" or save1 != f"@(Shift+F{1})" or save2 != f"@(Shift+F{1})":
-                    self.log_color("Please turn your hotkeys for loading/saving states in dolphin to default", "red")
 
             RAMOverrideEnable = config.getboolean("Core", "RAMOverrideEnable")
             if RAMOverrideEnable == True:

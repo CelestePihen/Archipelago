@@ -106,9 +106,6 @@ class NSMBWSettings(settings.Group):
         on Windows found in '%appdata%/Dolphin Emultator/Load/Riivolution'
         """
 
-    class AutoStartGame(settings.Bool):
-        """Enable if you want to open the game automatically"""
-
     class AutoStartRiivolution(settings.Bool):
         """Enable if you want to start the game automatically after a riivolution patch have been applied"""
 
@@ -117,6 +114,9 @@ class NSMBWSettings(settings.Group):
 
     class AutoSaveGame(settings.Bool):
         """Enable if you want to save the game automatically every 5 minutes"""
+
+    class AutoSaveSaveStates(settings.Bool):
+        """Enable if you want the save command to also capture a screenshot"""
 
     class AutoCloseGame(settings.Bool):
         """Enable if you want to close the game automatically"""
@@ -191,10 +191,10 @@ class NSMBWSettings(settings.Group):
 
     game_file_path: GameFilePath  = GameFilePath(r"New SUPER MARIO BROS. Wii.iso")
 
-    auto_start: AutoStartGame | bool = False
     auto_start_riivolution : AutoStartRiivolution | bool = True
     auto_load : AutoLoadState | bool = False
     auto_save: AutoSaveGame | bool = True
+    auto_save_savestates: AutoSaveSaveStates | bool = False
     auto_close: AutoCloseGame | bool = False
 
     debug_mode : DebugMode | bool = not Utils.is_frozen()
