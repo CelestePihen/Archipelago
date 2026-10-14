@@ -160,6 +160,8 @@ def get_num_dolphin_instances() -> int:
             elif Utils.is_linux:
                 # KDE Dolphin and dolphin-tool are not emulator instances.
                 is_dolphin = name in {"dolphin.exe", "dolphin-emu", "dolphin-emu-qt2", "dolphin-emu-nogui"}
+            elif Utils.is_windows:
+                is_dolphin = name == "dolphin.exe"
             else:
                 is_dolphin = name.startswith("dolphin")
             if is_dolphin and process.status() not in (

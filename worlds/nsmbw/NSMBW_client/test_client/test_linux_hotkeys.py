@@ -12,7 +12,7 @@ class TestLinuxHotkeys(unittest.TestCase):
         self.enterContext(patch.dict("sys.modules", {"dolphin_memory_engine": Mock(), "psutil": Mock()}))
         self.enterContext(patch.dict("os.environ"))
         self.enterContext(patch("Utils.get_settings", return_value={"nsmbw_settings": self.settings}))
-        from ..NSMBW_client import NSMBWInterface as client
+        from .. import NSMBWInterface as client
 
         self.run = self.enterContext(patch.object(client.subprocess, "run"))
         self.enterContext(patch.object(client.shutil, "which", return_value="/usr/bin/tool"))

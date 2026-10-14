@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock, patch
 from zipfile import ZipFile
 
-from .. import Utils as nsmbw_utils
+from ... import Utils as nsmbw_utils
 
 
 class TestDolphinProcessDetection(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestDolphinProcessDetection(unittest.TestCase):
         self.enterContext(patch("Utils.get_settings", return_value={
             "nsmbw_settings": SimpleNamespace(dolphin_process_name="", dolphin_instance_override=False),
         }))
-        from ..NSMBW_client import dolphin_interface_client
+        from .. import dolphin_interface_client
 
         self.client = dolphin_interface_client
         self.enterContext(patch.object(self.client, "psutil", self.psutil))
@@ -44,17 +44,29 @@ class TestDolphinProcessDetection(unittest.TestCase):
             self.assertTrue(self.client.assert_no_running_dolphin())
 
     def test_emulator_names_on_each_platform(self) -> None:
-        for linux, name in [
-            (True, "dolphin-emu"), (True, "dolphin-emu-qt2"), (True, "dolphin-emu-nogui"),
-            (False, "Dolphin.exe"), (False, "Dolphin"), (False, "Dolphin-custom.exe"),
+        for linux, windows, name in [
+            (True, False, "dolphin-emu"), (True, False, "dolphin-emu-qt2"), (True, False, "dolphin-emu-nogui"),
+            (False, True, "Dolphin.exe"), (False, False, "Dolphin"), (False, False, "Dolphin-custom"),
         ]:
-            with self.subTest(linux=linux, name=name), patch("Utils.is_linux", linux):
+            with self.subTest(linux=linux, windows=windows, name=name), \
+                    patch("Utils.is_linux", linux), patch("Utils.is_windows", windows):
                 process = Mock()
                 process.name.return_value = name
                 process.status.return_value = "running"
                 self.psutil.process_iter.return_value = [process]
                 self.assertEqual(self.client.get_num_dolphin_instances(), 1)
                 self.assertFalse(self.client.assert_no_running_dolphin())
+
+    def test_windows_requires_exact_emulator_name(self) -> None:
+        with patch("Utils.is_linux", False), patch("Utils.is_windows", True):
+            for name, expected in [("Dolphin.EXE", 1), ("dolphin", 0), ("Dolphin-custom.exe", 0),
+                                   ("dolphin-tool.exe", 0)]:
+                with self.subTest(name=name):
+                    process = Mock()
+                    process.name.return_value = name
+                    process.status.return_value = "running"
+                    self.psutil.process_iter.return_value = [process]
+                    self.assertEqual(self.client.get_num_dolphin_instances(), expected)
 
     def test_custom_process_name_and_inaccessible_processes(self) -> None:
         custom = Mock()
@@ -67,8 +79,11 @@ class TestDolphinProcessDetection(unittest.TestCase):
         denied = Mock()
         denied.name.side_effect = PermissionError
         self.psutil.process_iter.return_value = [gone, denied, other, custom]
-        with patch.dict("os.environ", {"DME_DOLPHIN_PROCESS_NAME": "custom-emulator"}):
-            self.assertEqual(self.client.get_num_dolphin_instances(), 1)
+        for linux, windows in [(True, False), (False, True), (False, False)]:
+            with self.subTest(linux=linux, windows=windows), \
+                    patch("Utils.is_linux", linux), patch("Utils.is_windows", windows), \
+                    patch.dict("os.environ", {"DME_DOLPHIN_PROCESS_NAME": "custom-emulator"}):
+                self.assertEqual(self.client.get_num_dolphin_instances(), 1)
 
 
 class TestClientManifest(unittest.TestCase):
