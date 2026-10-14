@@ -110,7 +110,7 @@ def read_manifest():
 
     text : str
     if Utils.is_frozen():
-        with (zipfile.ZipFile(Path(__file__).parent.parent.parent) as zf):
+        with (zipfile.ZipFile(Path(__file__).parent.parent) as zf):
             apnsmbw_file = zipfile.Path(zf) / "nsmbw" / "archipelago.json"
             text = apnsmbw_file.read_text(encoding='UTF-8')
     else:

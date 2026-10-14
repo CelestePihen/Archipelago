@@ -37,3 +37,16 @@ WANNING: No logic
 Likes to crash a lot
 Does not work with exiting levels
 Does not properly reset when exit levels
+
+## Legacy Linux save-state hotkeys
+
+Use Riivolution to clear the JIT cache. These legacy settings are for advanced troubleshooting.
+
+In `host.yaml`, set `nsmbw_settings.keypress_library` to:
+
+- `0`: bundled Python `keyboard` library; requires the client to run as root on Linux.
+- `1`: `xdotool`; your desktop may ask you to allow input control.
+- `2`: `ydotool`; requires `ydotoold` to be running. Follow its
+  [setup instructions](https://github.com/ReimuNotMoe/ydotool#runtime).
+
+Restart the client after changing this setting.
