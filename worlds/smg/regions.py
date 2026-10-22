@@ -84,7 +84,8 @@ DOMES: list[SMGRegions] = [
     SMGRegions.KITCHEN,
     SMGRegions.BEDROOM,
     SMGRegions.ENGINE_ROOM,
-    SMGRegions.GARDEN
+    SMGRegions.GARDEN,
+    SMGRegions.PLANET_OF_TRIALS,
 ]
 
 
@@ -98,6 +99,7 @@ REGION_GALAXIES: dict[SMGRegions, list[SMGRegions]] = {
         SMGRegions.SNOW_CAP_GALAXY,
         SMGRegions.BOOS_BONEYARD_GALAXY,
         SMGRegions.BOWSERS_GALAXY_REACTOR,
+        SMGRegions.GRAND_FINALE_GALAXY,
     ],
 
     SMGRegions.GATE: [
@@ -155,7 +157,6 @@ REGION_GALAXIES: dict[SMGRegions, list[SMGRegions]] = {
         SMGRegions.ROLLING_GIZMO_GALAXY,
         SMGRegions.BUBBLE_BLAST_GALAXY,
         SMGRegions.LOOPDEESWOOP_GALAXY,
-        SMGRegions.GRAND_FINALE_GALAXY,
     ],
 }
 
@@ -221,9 +222,6 @@ GALAXY_STAR_COUNTS: dict[SMGRegions, int] = {
     SMGRegions.ROLLING_GIZMO_GALAXY: 1,
     SMGRegions.BUBBLE_BLAST_GALAXY: 1,
     SMGRegions.LOOPDEESWOOP_GALAXY: 1,
-
-    # Grand Finale
-    SMGRegions.GRAND_FINALE_GALAXY: 1,
 }
 
 

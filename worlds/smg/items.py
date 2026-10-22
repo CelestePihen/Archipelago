@@ -13,16 +13,19 @@ class ITEM:
     Star = "Star"
     Coin = "Coin"
     Victory = "Victory"
+    PlanetOfTrialsUnlock = "Planet of Trials Unlock"
 
 
 ITEM_NAME_TO_ID = {
     ITEM.Coin: 1,
     ITEM.Star: 2,
+    ITEM.PlanetOfTrialsUnlock: 206
 }
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
     ITEM.Coin: ItemClassification.filler,
     ITEM.Star: ItemClassification.progression_skip_balancing,
+    ITEM.PlanetOfTrialsUnlock: ItemClassification.progression
 }
 
 for index, galaxy in enumerate(GALAXY_STAR_COUNTS, start=100):

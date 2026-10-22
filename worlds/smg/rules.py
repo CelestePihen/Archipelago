@@ -41,6 +41,8 @@ def set_all_entrance_rules(world: SMGWorld) -> None:
 
             world.set_rule(entrance, rule)
 
+    world.set_rule(world.get_entrance("Comet Observatory to Planet of Trials"), Has(ITEM.PlanetOfTrialsUnlock))
+
 
 def set_all_location_rules(world: SMGWorld) -> None:
     gateway_second_star = world.get_location("Gateway Galaxy 2")
