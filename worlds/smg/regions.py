@@ -75,7 +75,7 @@ class SMGRegions(Enum):
     ROLLING_GIZMO_GALAXY = "Rolling Gizmo Galaxy"
     BUBBLE_BLAST_GALAXY = "Bubble Blast Galaxy"
     LOOPDEESWOOP_GALAXY = "Loopdeeswoop Galaxy"
-    GRAND_FINALE_GALAXY = "Grand Finale Galaxy"
+    # GRAND_FINALE_GALAXY = "Grand Finale Galaxy"
 
 
 DOMES: list[SMGRegions] = [
@@ -99,7 +99,7 @@ REGION_GALAXIES: dict[SMGRegions, list[SMGRegions]] = {
         SMGRegions.SNOW_CAP_GALAXY,
         SMGRegions.BOOS_BONEYARD_GALAXY,
         SMGRegions.BOWSERS_GALAXY_REACTOR,
-        SMGRegions.GRAND_FINALE_GALAXY,
+        # SMGRegions.GRAND_FINALE_GALAXY,
     ],
 
     SMGRegions.GATE: [

@@ -10,22 +10,16 @@ if TYPE_CHECKING:
 
 
 class ITEM:
-    Star = "Star"
     Coin = "Coin"
+    Star = "Star"
     Victory = "Victory"
-    PlanetOfTrialsUnlock = "Planet of Trials Unlock"
 
 
-ITEM_NAME_TO_ID = {
-    ITEM.Coin: 1,
-    ITEM.Star: 2,
-    ITEM.PlanetOfTrialsUnlock: 206
-}
+ITEM_NAME_TO_ID = {ITEM.Coin: 1, ITEM.Star: 2}
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
     ITEM.Coin: ItemClassification.filler,
     ITEM.Star: ItemClassification.progression_skip_balancing,
-    ITEM.PlanetOfTrialsUnlock: ItemClassification.progression
 }
 
 for index, galaxy in enumerate(GALAXY_STAR_COUNTS, start=100):
@@ -58,7 +52,9 @@ def create_item_with_correct_classification(world: SMGWorld, name: str) -> SMGIt
 def place_victory_event(world: SMGWorld) -> None:
     location = world.get_location("Bowser Defeated")
 
-    victory_item = SMGItem(ITEM.Victory, ItemClassification.progression, None, world.player)
+    victory_item = SMGItem(
+        ITEM.Victory, ItemClassification.progression, None, world.player
+    )
 
     location.place_locked_item(victory_item)
 
@@ -66,8 +62,10 @@ def place_victory_event(world: SMGWorld) -> None:
 def set_starting_items(world: SMGWorld) -> set[str]:
     starting_galaxies = [
         (parent, galaxy)
-        for parent, galaxies in REGION_GALAXIES.items() if parent in DOMES
-        for galaxy in galaxies if galaxy in STARTING_GALAXIES
+        for parent, galaxies in REGION_GALAXIES.items()
+        if parent in DOMES
+        for galaxy in galaxies
+        if galaxy in STARTING_GALAXIES
     ]
 
     starting_dome, starting_galaxy = world.random.choice(starting_galaxies)
@@ -77,7 +75,7 @@ def set_starting_items(world: SMGWorld) -> set[str]:
     galaxy_item = f"{starting_galaxy.value} Unlock"
     world.multiworld.push_precollected(world.create_item(galaxy_item))
     starting_items.add(galaxy_item)
-    
+
     dome_item = f"{starting_dome.value} Unlock"
     world.multiworld.push_precollected(world.create_item(dome_item))
     starting_items.add(dome_item)
@@ -114,11 +112,15 @@ def create_all_items(world: SMGWorld) -> None:
 
     # on met le reste des items par des items filler
     number_of_items = len(itempool)
-    number_of_unfilled_locations = len(world.multiworld.get_unfilled_locations(world.player))
+    number_of_unfilled_locations = len(
+        world.multiworld.get_unfilled_locations(world.player)
+    )
     needed_number_of_filler_items = number_of_unfilled_locations - number_of_items
 
     if needed_number_of_filler_items < 0:
-        raise ValueError(f"Too many items: {number_of_items} items for {number_of_unfilled_locations} locations")
+        raise ValueError(
+            f"Too many items: {number_of_items} items for {number_of_unfilled_locations} locations"
+        )
 
     itempool += [world.create_filler() for _ in range(needed_number_of_filler_items)]
 
