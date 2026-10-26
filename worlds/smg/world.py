@@ -43,7 +43,10 @@ class SMGWorld(World):
         return items.get_random_filler_item_name(self)
 
     def fill_slot_data(self) -> dict:
-        return {"required_stars": self.options.required_stars.value}
+        return {
+            "required_stars": self.options.required_stars.value,
+            "dome_unlock_mode": self.options.dome_unlock_mode.value,
+        }
 
     def generate_output(self, output_directory: str) -> None:
         # Même donnée que le paquet Connected du serveur, utilisable par le
