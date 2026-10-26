@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from worlds.AutoWorld import World
 from . import items, locations, regions, rules
 from . import options as smg_options
@@ -38,3 +41,13 @@ class SMGWorld(World):
 
     def get_filler_item_name(self) -> str:
         return items.get_random_filler_item_name(self)
+
+    def fill_slot_data(self) -> dict:
+        return {"required_stars": self.options.required_stars.value}
+
+    def generate_output(self, output_directory: str) -> None:
+        # Même donnée que le paquet Connected du serveur, utilisable par le
+        # client mailbox local sans modifier les flags de sauvegarde vanilla.
+        name = self.multiworld.get_out_file_name_base(self.player) + ".smg.json"
+        path = Path(output_directory) / name
+        path.write_text(json.dumps(self.fill_slot_data(), indent=2) + "\n", encoding="utf-8")
