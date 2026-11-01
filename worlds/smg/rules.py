@@ -43,6 +43,11 @@ def set_all_entrance_rules(world: SMGWorld) -> None:
 
 
 def set_all_location_rules(world: SMGWorld) -> None:
+    # A dense progression pool must leave Bowser's own check for filler (or
+    # another player's item), rather than strand a local Unlock behind the goal.
+    final_check = world.get_location("Bowser's Galaxy Reactor 1")
+    final_check.item_rule = lambda item: item.player != world.player or not item.advancement
+
     gateway_second_star = world.get_location("Gateway Galaxy 2")
     world.set_rule(gateway_second_star, Has("Gateway Galaxy Unlock"))
 

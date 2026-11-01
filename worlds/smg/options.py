@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from Options import Choice, Range, DeathLink, PerGameCommonOptions
+from .regions import DOMES, GALAXY_STAR_COUNTS, SMGRegions
 
 
 class DomeUnlockMode(Choice):
@@ -11,11 +12,27 @@ class DomeUnlockMode(Choice):
     default = 0
 
 
+def max_required_stars(dome_unlock_mode: int) -> int:
+    """Fit Stars and Unlocks before the final Bowser check."""
+    unlocks = len(GALAXY_STAR_COUNTS)
+    if dome_unlock_mode == DomeUnlockMode.option_individual:
+        # One starting galaxy and its dome are automatically precollected.
+        unlocks += len(DOMES) - 2
+    pre_goal_checks = sum(count for galaxy, count in GALAXY_STAR_COUNTS.items()
+                          if galaxy != SMGRegions.BOWSERS_GALAXY_REACTOR)
+    return pre_goal_checks - unlocks
+
+
 class RequiredStars(Range):
-    """Number of Power Stars required to access the final Bowser battle."""
+    """Number of Power Stars required to access the final Bowser battle.
+
+    Maximum: 78 with all domes open, 73 with individual dome unlocks.
+    Unlock items also need locations, and Bowser's own check cannot hold
+    progression needed to reach him.
+    """
     display_name = "Required Power Stars"
     range_start = 1
-    range_end = 121
+    range_end = max_required_stars(DomeUnlockMode.option_all_open)
     default = 3
 
 

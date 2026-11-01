@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from Options import OptionError
 from worlds.AutoWorld import World
 from . import items, locations, regions, rules
 from . import options as smg_options
@@ -25,6 +26,16 @@ class SMGWorld(World):
     item_name_to_id = items.ITEM_NAME_TO_ID
 
     origin_region_name = "Comet Observatory"
+
+    def generate_early(self) -> None:
+        maximum = smg_options.max_required_stars(self.options.dome_unlock_mode.value)
+        if self.options.required_stars.value > maximum:
+            raise OptionError(
+                f"Super Mario Galaxy ({self.multiworld.player_name[self.player]}): "
+                f"required_stars={self.options.required_stars.value} exceeds the maximum "
+                f"of {maximum} for dome_unlock_mode={self.options.dome_unlock_mode.current_key}; "
+                "Stars and Unlock items must fit before the final Bowser check."
+            )
 
     def create_regions(self) -> None:
         regions.create_and_connect_regions(self)
