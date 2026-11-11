@@ -4,7 +4,7 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from worlds.smg import protocol as p
 from worlds.smg.client_data import STAGES
@@ -276,6 +276,71 @@ class ClientTests(unittest.TestCase):
         with self.assertRaises(DolphinUnavailable):
             bridge.word(p.SYNC_REQUEST_OFFSET, 1, epoch=99)
         self.assertFalse(memory.writes)
+
+
+class DolphinLaunchTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        from worlds.smg.client import SMGContext
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        self.game = root / 'patched game' / 'main.dol'
+        self.game.parent.mkdir()
+        self.game.touch()
+        self.memory = Mock()
+        self.memory.is_hooked.return_value = False
+        self.ctx = SMGContext(state_dir=root / 'state', memory=self.memory,
+                              launch_path=self.game, dolphin='/custom path/dolphin',
+                              dolphin_user=root / 'Dolphin profile')
+        self.addAsyncCleanup(self.ctx.shutdown)
+
+    async def test_relaunch_preserves_arguments_network_and_journal(self):
+        journal = object()
+        self.ctx.progress = journal
+        self.ctx.history_ready = True
+        old = Mock()
+        old.poll.return_value = 0
+        self.ctx.dolphin_process = old
+        self.ctx.bridge.found = {'old': 'process'}
+        self.ctx.bridge.binding = ('old',)
+        with patch('worlds.smg.client.subprocess.Popen') as spawn:
+            self.assertTrue(self.ctx.command_processor(self.ctx)('/dolphin_launch'))
+            spawn.assert_called_once_with(['/custom path/dolphin', '-e', str(self.game),
+                                           '-u', str(self.game.parents[1] / 'Dolphin profile')])
+            self.assertIs(self.ctx.dolphin_process, spawn.return_value)
+            spawn.return_value.poll.return_value = None
+            self.assertFalse(self.ctx.command_processor(self.ctx)('/dolphin_launch'))
+            spawn.assert_called_once()
+        self.memory.un_hook.assert_called_once()
+        self.memory.hook.assert_called_once()
+        self.assertIsNone(self.ctx.bridge.found)
+        self.assertIsNone(self.ctx.bridge.binding)
+        self.assertIs(self.ctx.progress, journal)
+        self.assertTrue(self.ctx.history_ready)
+
+    async def test_external_dolphin_blocks_duplicate_launch(self):
+        self.memory.is_hooked.return_value = True
+        with patch('worlds.smg.client.subprocess.Popen') as spawn:
+            self.assertFalse(self.ctx.command_processor(self.ctx)('/dolphin_launch'))
+            spawn.assert_not_called()
+
+    async def test_missing_game_configuration_and_spawn_failure_are_recoverable(self):
+        processor = self.ctx.command_processor(self.ctx)
+        with patch('worlds.smg.client.subprocess.Popen', side_effect=FileNotFoundError('missing executable')) as spawn:
+            self.assertFalse(processor('/dolphin_launch'))
+            self.assertIsNone(self.ctx.dolphin_process)
+            self.assertIsNone(self.ctx.client_error)
+            self.game.unlink()
+            self.assertFalse(processor('/dolphin_launch'))
+            self.ctx.launch_path = None
+            self.assertFalse(processor('/dolphin_launch'))
+            spawn.assert_called_once()
+
+    async def test_default_profile_does_not_add_user_directory(self):
+        self.ctx.dolphin_user = None
+        with patch('worlds.smg.client.subprocess.Popen') as spawn:
+            self.ctx.launch_dolphin()
+            spawn.assert_called_once_with(['/custom path/dolphin', '-e', str(self.game)])
 
 
 class ClientNetworkTests(unittest.IsolatedAsyncioTestCase):

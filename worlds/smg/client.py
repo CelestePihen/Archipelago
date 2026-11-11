@@ -14,6 +14,16 @@ from .dolphin import DolphinBridge, DolphinUnavailable
 
 
 class SMGCommandProcessor(ClientCommandProcessor):
+    def _cmd_dolphin_launch(self):
+        """Launch Dolphin again with the original --launch, --dolphin and --dolphin-user settings. Close Dolphin first."""
+        try:
+            self.ctx.launch_dolphin()
+        except (StateError, OSError, RuntimeError) as exc:
+            self.output(f'Cannot launch Dolphin: {exc}')
+            return False
+        self.output('Dolphin launched. Load your save file to resume Archipelago synchronization.')
+        return True
+
     def _cmd_dolphin(self):
         """Show the emulator connection and durable journal status."""
         self.output(self.ctx.dolphin_status)
@@ -26,7 +36,8 @@ class SMGContext(CommonContext):
     items_handling = 0b111
     command_processor = SMGCommandProcessor
 
-    def __init__(self, server_address=None, password=None, *, state_dir=None, memory=None, profile='default'):
+    def __init__(self, server_address=None, password=None, *, state_dir=None, memory=None, profile='default',
+                 launch_path=None, dolphin='dolphin-emu', dolphin_user=None):
         super().__init__(server_address, password)
         self.state_dir = Path(state_dir) if state_dir else Path(Utils.user_path('smg-client'))
         self.progress = None
@@ -37,6 +48,30 @@ class SMGContext(CommonContext):
         self.sent_checks = set()
         self.goal_sent = False
         self.history_ready = False
+        self.launch_path = Path(launch_path).resolve() if launch_path else None
+        self.dolphin_executable = dolphin
+        self.dolphin_user = Path(dolphin_user).resolve() if dolphin_user else None
+        self.dolphin_process = None
+
+    def launch_dolphin(self):
+        if self.launch_path is None:
+            raise StateError('Start the client with --launch /path/to/patched/main.dol first')
+        if not self.launch_path.is_file():
+            raise StateError(f'Game path does not exist: {self.launch_path}')
+        if self.dolphin_process is not None and self.dolphin_process.poll() is None:
+            raise StateError('Dolphin is still running. Close its window before launching it again')
+        if self.bridge is not None:
+            # Discard the old process attachment and probe for another Dolphin
+            # before spawning. Keep the seed journal and network session intact.
+            self.bridge.forget()
+            self.bridge.memory.un_hook()
+            self.bridge.memory.hook()
+            if self.bridge.memory.is_hooked():
+                raise StateError('Another Dolphin instance is running. Close it before launching Dolphin here')
+        command = [self.dolphin_executable, '-e', str(self.launch_path)]
+        if self.dolphin_user:
+            command += ['-u', str(self.dolphin_user)]
+        self.dolphin_process = subprocess.Popen(command)
 
     async def server_auth(self, password_requested=False):
         if password_requested and not self.password:
@@ -78,8 +113,14 @@ class SMGContext(CommonContext):
             self.bridge = DolphinBridge(dolphin_memory_engine, self.profile)
         status = self.bridge.tick(self.progress)
         if status != self.dolphin_status:
+            # Keep /dolphin current without announcing each received item as
+            # a new emulator connection. Region/file and state changes still log.
+            count_only = (status.startswith('Dolphin connected (')
+                          and self.dolphin_status.startswith('Dolphin connected (')
+                          and status.rsplit(', ', 1)[0] == self.dolphin_status.rsplit(', ', 1)[0])
             self.dolphin_status = status
-            logger.info(status)
+            if not count_only:
+                logger.info(status)
         if self.server and self.slot is not None:
             pending = set(self.progress.data['checks']) - self.sent_checks
             if pending:
@@ -137,7 +178,8 @@ def main(*args):
     Utils.init_logging('Super Mario Galaxy Client')
 
     async def run():
-        ctx = SMGContext(parsed.connect, parsed.password, state_dir=parsed.state_dir)
+        ctx = SMGContext(parsed.connect, parsed.password, state_dir=parsed.state_dir,
+                         launch_path=parsed.launch, dolphin=parsed.dolphin, dolphin_user=parsed.dolphin_user)
         ctx.auth = parsed.name
         lock = ClientLock(ctx.state_dir)
         sync_task = None
@@ -149,12 +191,10 @@ def main(*args):
             profile = str(parsed.dolphin_user.resolve()) if parsed.dolphin_user else parsed.profile
             ctx.bridge = DolphinBridge(dolphin_memory_engine, profile)
             if parsed.launch:
-                if not parsed.launch.is_file():
-                    raise StateError(f'Game path does not exist: {parsed.launch}')
-                command = [parsed.dolphin, '-e', str(parsed.launch.resolve())]
-                if parsed.dolphin_user:
-                    command += ['-u', str(parsed.dolphin_user.resolve())]
-                subprocess.Popen(command)
+                try:
+                    ctx.launch_dolphin()
+                except (StateError, OSError, RuntimeError) as exc:
+                    logger.error('Cannot launch Dolphin: %s. Use /dolphin_launch to retry.', exc)
             ctx.server_task = asyncio.create_task(server_loop(ctx), name='SMG server')
             if Utils.gui_enabled and not getattr(parsed, 'nogui', False):
                 ctx.run_gui()
