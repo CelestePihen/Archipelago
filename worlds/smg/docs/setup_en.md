@@ -1,70 +1,105 @@
-# Super Mario Galaxy client
+# Super Mario Galaxy setup
 
-Install the SMG APWorld and `dolphin-memory-engine>=1.3.1` in the same Python
-environment as Archipelago. The client appears as **Super Mario Galaxy Client**
-in Archipelago Launcher. It uses the standard server address, slot name and
-password UI. DeathLink is not implemented yet.
+## Before you start
 
-The game must use the **mailbox v5** module and matching patched DOL/bootstrap.
-Rebuild both PAL/USA artifacts and restart Dolphin when upgrading from v4.
-PAL (`RMGP01`) and USA (`RMGE01`) are supported. Use a new game file for a new
-seed: existing native star flags count as completed checks.
+Install the SMG APWorld and use the latest patched game files. PAL (`RMGP01`)
+and USA (`RMGE01`) are supported.
 
-From an Archipelago source checkout:
+**Start a new save file for each new seed.** Keep the same save file when
+returning to an existing seed.
+
+If you run Archipelago from source, install the client dependency first:
 
 ```sh
 .venv/bin/python -m pip install -r worlds/smg/requirements.txt
+```
+
+## Connecting
+
+Open **Super Mario Galaxy Client** from Archipelago Launcher and enter your
+server address, slot name and password, if needed.
+
+From a source checkout, you can also start the client with:
+
+```sh
 .venv/bin/python -m worlds.smg.client --connect archipelago.gg:PORT --name SLOT
 ```
 
-On Linux, process permissions may prevent attachment to Dolphin launched
-independently. Let the client start Dolphin as its child; no system permission
-changes or administrator privileges are required:
+On Linux, let the client launch Dolphin so it can connect to the game:
 
 ```sh
 .venv/bin/python -m worlds.smg.client --connect archipelago.gg:PORT --name SLOT \
   --launch /absolute/path/to/patched/game/DATA/sys/main.dol
 ```
 
-Use `--dolphin /path/to/dolphin-emu` for a non-default executable,
-`--dolphin-user /path/to/user` for a separate Dolphin user directory, and
-`--nogui` for terminal use. Run only one Dolphin game and one SMG mailbox writer
-at a time. Closing the client leaves Dolphin running.
+Replace the server address, slot name and game path with your own.
+Run only one Dolphin instance and one SMG client at a time.
 
-## Resuming
+Optional launch settings:
 
-After the first connection, the client stores the received item history,
-accepted item prefix, checked locations and victory in its `smg-client` user
-directory. `/dolphin` prints the current status and journal path. Keep that
-directory with the Dolphin saves; `--state-dir PATH` can choose its location.
-No server password is stored in the SMG journal.
+- `--dolphin /path/to/dolphin-emu`: choose a different Dolphin executable.
+- `--dolphin-user /path/to/user`: use a separate Dolphin profile.
+- `--nogui`: use the client in a terminal.
 
-* Network disconnect: gameplay checks are written locally before their mailbox
-  acknowledgement. They are resent on reconnection, including victory.
-* Client restart: reconnect to the same room/slot. The game-owned item cursor
-  prevents receiving the same indexed item twice.
-* Dolphin restart or older savestate: Stars and Unlocks are restored from the
-  journal. Native save flags recover checks made without the client, including
-  a full transient event queue. Save the game normally; unsaved native gameplay
-  cannot be reconstructed if both processes disappear before it is recorded.
-* Coins are consumables. Previously accepted Coins are not replayed to heal the
-  player again, and temporary pending effects are not restored after a game
-  restart. A crash between durable reservation and delivery can lose the Coin
-  in flight; it cannot duplicate it.
+Closing the client leaves Dolphin open. After closing Dolphin,
+`/dolphin_launch` in the client launches it again with the same settings.
+This requires starting the client with `--launch`.
 
-The client binds each native file (region, file number and Mario/Luigi) to a
-seed/team/slot and refuses a conflicting seed. For a genuinely separate Dolphin
-user directory, use `--dolphin-user` or a distinct `--profile` name. Do not change
-the profile name merely to bypass a conflicting save binding. To move to another
-computer, copy the game saves and the entire SMG client state directory.
+## Hint price
 
-If the client reports a corrupt journal or conflicting history, preserve the
-files for diagnosis. It stops syncing rather than guessing an item cursor.
+The Comet Luma offers hints for accessible Super Mario Galaxy checks.
+New hints cost 100 Star Bits by default; reading purchased hints is free.
+Set the price in your YAML before generating a seed:
 
-## Validation boundary
+```yaml
+Super Mario Galaxy:
+  hint_price: 100
+```
 
-Unit tests cover disk failures, repeated item packets, item/seed isolation,
-offline check and goal delivery, and a real local WebSocket handshake. PAL/USA
-PowerPC tests execute the compiled restoration and deduplication code with
-simulated save/player/UI services. These do not replace a complete real seed
-playthrough and rendered Dolphin reconnect/restart testing.
+## DeathLink
+
+DeathLink shares deaths with other players who have enabled it.
+You can configure it in your YAML before generating a seed:
+
+```yaml
+Super Mario Galaxy:
+  death_link: true
+  death_link_amnesty: 2
+  death_link_group: ""
+```
+
+- **Amnesty:** with `2`, the first local death is spared and the second sends
+  DeathLink, then the cycle starts again. `0` or `1` sends
+  every local death. You can choose a value from 0 to 30. Deaths received from
+  other players still apply normally and do not count toward amnesty.
+- **Group:** leave it empty to use standard DeathLink, including games without
+  group support. To share deaths only with a few players, choose the same
+  group name in each compatible game, such as `"amis"`. Names are case-sensitive.
+
+You can also change these settings in the client, including on an existing seed:
+
+| Command | Effect |
+| --- | --- |
+| `/deathlink on` | Enable DeathLink. |
+| `/deathlink off` | Disable DeathLink. |
+| `/deathlink_amnesty 2` | Set amnesty to one DeathLink every two local deaths. |
+| `/deathlink_group amis` | Join the group `amis`. |
+| `/deathlink_group ""` | Return to standard DeathLink. |
+
+For a group name with spaces, use quotes: `/deathlink_group "mes amis"`.
+Use `/deathlink_amnesty` or `/deathlink_group` without a value to view the
+current setting. Changes made in the client last until you close it.
+
+## Saving and returning to your game
+
+Save normally in the game. After a restart, reconnect to the same server and
+slot, then load the same save file. Your AP Stars and Unlocks should return.
+Checks completed during a network interruption are sent when you reconnect.
+1-Ups already received are not granted again after restarting the game.
+
+Keep both your Dolphin saves and the client's `smg-client` folder.
+The `/dolphin` command shows the connection status and the client save location.
+Copy both when moving to another computer.
+
+If the client reports a save conflict or damaged progress file, keep those
+files and ask for help before deleting anything.
