@@ -195,7 +195,7 @@ class DolphinBridge:
         if write == read:
             index = state['index']
             if index < committed:
-                # Only a durably reserved Coin may be uncertain after a client crash.
+                # Only a durably reserved 1-Up may be uncertain after a client crash.
                 self.enqueue(p.COMMAND_SKIP_ITEM, index, state['epoch'])
             elif index < len(store.data['items']):
                 item = store.data['items'][index][0]

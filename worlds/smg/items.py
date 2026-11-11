@@ -10,15 +10,16 @@ if TYPE_CHECKING:
 
 
 class ITEM:
-    Coin = "Coin"
+    OneUp = "1-Up"
     Star = "Star"
     Victory = "Victory"
 
 
-ITEM_NAME_TO_ID = {ITEM.Coin: 1, ITEM.Star: 2}
+# Retain filler ID 1 so existing seeds and durable item histories stay usable.
+ITEM_NAME_TO_ID = {ITEM.OneUp: 1, ITEM.Star: 2}
 
 DEFAULT_ITEM_CLASSIFICATIONS = {
-    ITEM.Coin: ItemClassification.filler,
+    ITEM.OneUp: ItemClassification.filler,
     ITEM.Star: ItemClassification.progression_skip_balancing,
 }
 
@@ -40,7 +41,7 @@ class SMGItem(Item):
 
 
 def get_random_filler_item_name(world: SMGWorld) -> str:
-    return ITEM.Coin
+    return ITEM.OneUp
 
 
 def create_item_with_correct_classification(world: SMGWorld, name: str) -> SMGItem:

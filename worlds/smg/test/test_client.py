@@ -167,7 +167,7 @@ class ClientTests(unittest.TestCase):
             self.store(seed='seed-B').bind('default', 'RMGP01', 1, 0)
         self.store(seed='seed-B').bind('other-user-directory', 'RMGP01', 1, 0)
 
-    def test_progression_restarts_and_client_restarts_do_not_replay_coins(self):
+    def test_progression_restarts_and_client_restarts_do_not_replay_one_ups(self):
         store, memory, bridge = self.bound([109, 200, 2, 1])
         for item in [109, 200, 2, 1]:
             bridge.tick(store)
@@ -188,7 +188,7 @@ class ClientTests(unittest.TestCase):
         replacement.tick(self.store())
         self.assertEqual(restarted.effects, [])
 
-    def test_uncertain_coin_is_skipped_after_publication_failure(self):
+    def test_uncertain_one_up_is_skipped_after_publication_failure(self):
         store, memory, bridge = self.bound([1])
         original = memory.write_bytes
 
@@ -215,7 +215,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(memory.get(16), 1)
         self.assertEqual(self.store().data['checks'], [location_for_star('EggStarGalaxy', 1)])
 
-    def test_disk_failure_does_not_reserve_or_deliver_coin(self):
+    def test_disk_failure_does_not_reserve_or_deliver_one_up(self):
         store, memory, bridge = self.bound([1])
         with patch('worlds.smg.client_state.atomic_json', side_effect=OSError('disk full')), self.assertRaises(OSError):
             bridge.tick(store)

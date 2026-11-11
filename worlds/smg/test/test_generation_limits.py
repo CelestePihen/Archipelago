@@ -52,9 +52,9 @@ class GenerationLimitTests(unittest.TestCase):
                         )
                         self.assertEqual(len(multiworld.itempool), 120)
                         self.assertEqual(sum(i.name == ITEM.Star for i in multiworld.itempool), required)
-                        self.assertEqual(sum(i.name == ITEM.Coin for i in multiworld.itempool), maximum - required + 1)
+                        self.assertEqual(sum(i.name == ITEM.OneUp for i in multiworld.itempool), maximum - required + 1)
                         self.assert_fill_reachable(multiworld)
-                        self.assertEqual(multiworld.get_location("Bowser's Galaxy Reactor 1", 1).item.name, ITEM.Coin)
+                        self.assertEqual(multiworld.get_location("Bowser's Galaxy Reactor 1", 1).item.name, ITEM.OneUp)
 
     def test_mixed_multiworld_at_both_limits(self):
         for seed in range(5):
