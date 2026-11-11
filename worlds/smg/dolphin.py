@@ -19,9 +19,13 @@ class DolphinBridge:
         self.profile = profile
         self.found = None
         self.binding = None
+        self.deathlink_state = None
+        self.deathlink_request_pending = False
 
     def forget(self):
         self.found = self.binding = None
+        self.deathlink_state = None
+        self.deathlink_request_pending = False
 
     def read(self, address, size):
         if size < 0 or not MEM1_START <= address <= MEM1_END or size > MEM1_END - address:
@@ -67,7 +71,7 @@ class DolphinBridge:
             raise StateError('Multiple SMG mailboxes; refusing ambiguous writes')
         if not found:
             if old_protocol:
-                raise StateError('Incompatible SMG mailbox. Rebuild the PAL/USA module and restart Dolphin (v5 required).')
+                raise StateError('Incompatible SMG mailbox. Rebuild the PAL/USA module and restart Dolphin (v7 required).')
             raise DolphinUnavailable('Waiting for the SMG Archipelago module to finish loading')
         self.found = found[0]
         self.validate()
@@ -102,7 +106,7 @@ class DolphinBridge:
         # No game-owned progression, flags or arbitrary game addresses may be written.
         allowed = ((p.SYNC_REQUEST_OFFSET, 4), (p.SNAPSHOT_OFFSET, 68),
                    (p.INCOMING_WRITE_COUNT_OFFSET, 4), (p.INCOMING_EVENTS_OFFSET, p.EVENT_CAPACITY * 8),
-                   (16, 4))
+                   (16, 4), (p.DEATH_LINK_EPOCH_OFFSET, 8), (p.DEATH_LINK_TEXT_OFFSET, p.DEATH_LINK_TEXT_UNITS * 2))
         if not any(start <= offset and offset + len(data) <= start + size for start, size in allowed):
             raise StateError('Attempted write outside client-owned mailbox fields')
         self.validate()
@@ -200,3 +204,36 @@ class DolphinBridge:
                     store.commit(index + 1)
                 self.enqueue(item, index, state['epoch'])
         return f'Dolphin connected ({self.found["region"]}, file {state["slot"]}, {state["index"]} items)'
+
+    def sync_deathlink(self, store, enabled, incoming_binding=None, incoming_text=None):
+        """Exchange transient deaths only for a fully synchronized native file.
+
+        Returns a local death edge. Received deaths never enter the item journal.
+        """
+        state = self.state()
+        epoch, request, response, deaths = struct.unpack(
+            '>4I', self.read(self.found['address'] + p.DEATH_LINK_OFFSET, 16))
+        self.deathlink_request_pending = request != response
+        ready = (state['slot'] != 0 and state['request'] == state['response'] and state['error'] == 0
+                 and tuple(state['identity']) == store.token)
+        active = bool(enabled and ready)
+        current = (self.binding, deaths, active)
+        previous = self.deathlink_state
+        self.deathlink_state = current
+        local_death = (active and previous is not None and previous[0] == self.binding
+                       and previous[2] and deaths != previous[1])
+        if not active:
+            if epoch != 0:
+                self.word(p.DEATH_LINK_EPOCH_OFFSET, 0, state['epoch'])
+            return False
+        if incoming_binding is not None and incoming_binding == self.binding:
+            # Coalesce simultaneous remote deaths while one request is pending.
+            if request == response:
+                text = incoming_text or 'DeathLink'
+                text = ''.join(c if (c == '\n' or c.isprintable()) and ord(c) <= 0xFFFF
+                               and not 0xD800 <= ord(c) <= 0xDFFF else '?' for c in text)
+                raw = text[:p.DEATH_LINK_TEXT_UNITS - 1].encode('utf-16-be')
+                self.write(p.DEATH_LINK_TEXT_OFFSET, raw.ljust(p.DEATH_LINK_TEXT_UNITS * 2, b'\0'), state['epoch'])
+                self.word(p.DEATH_LINK_EPOCH_OFFSET, state['epoch'], state['epoch'])
+                self.word(p.DEATH_LINK_REQUEST_OFFSET, request + 1, state['epoch'])
+        return bool(local_death)

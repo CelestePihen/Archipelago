@@ -55,6 +55,9 @@ class SMGWorld(World):
 
     def fill_slot_data(self) -> dict:
         return {
+            "death_link": self.options.death_link.value,
+            "death_link_group": self.options.death_link_group.value,
+            "death_link_amnesty": self.options.death_link_amnesty.value,
             "required_stars": self.options.required_stars.value,
             "dome_unlock_mode": self.options.dome_unlock_mode.value,
         }

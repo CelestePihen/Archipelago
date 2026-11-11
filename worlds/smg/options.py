@@ -1,7 +1,33 @@
 from dataclasses import dataclass
 
-from Options import Choice, Range, DeathLink, PerGameCommonOptions
+from Options import Choice, FreeText, Range, DeathLink, PerGameCommonOptions
 from .regions import DOMES, GALAXY_STAR_COUNTS, SMGRegions
+
+
+class DeathLinkGroup(FreeText):
+    """Share deaths only with players using exactly the same group name
+    (case-sensitive). An empty string uses standard DeathLink, including games
+    without group support. Has no effect when DeathLink is disabled.
+    """
+    display_name = "DeathLink Group"
+    default = ""
+
+    @classmethod
+    def validate_text(cls, text: str) -> None:
+        if text and not text.isprintable():
+            raise ValueError('DeathLink group names cannot contain control characters')
+
+
+class DeathLinkAmnesty(Range):
+    """Send a DeathLink on every Nth local death. With 2, spare the first death
+    and send the second; then repeat. 0 or 1 sends every local death.
+    Received DeathLinks always apply and do not consume amnesty.
+    Has no effect when DeathLink is disabled.
+    """
+    display_name = "DeathLink Amnesty"
+    range_start = 0
+    range_end = 30
+    default = 0
 
 
 class DomeUnlockMode(Choice):
@@ -39,5 +65,7 @@ class RequiredStars(Range):
 @dataclass
 class SMGOptions(PerGameCommonOptions):
     death_link: DeathLink
+    death_link_group: DeathLinkGroup
+    death_link_amnesty: DeathLinkAmnesty
     dome_unlock_mode: DomeUnlockMode
     required_stars: RequiredStars
