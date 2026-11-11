@@ -71,7 +71,7 @@ class DolphinBridge:
             raise StateError('Multiple SMG mailboxes; refusing ambiguous writes')
         if not found:
             if old_protocol:
-                raise StateError('Incompatible SMG mailbox. Rebuild the PAL/USA module and restart Dolphin (v7 required).')
+                raise StateError('Incompatible SMG mailbox. Rebuild the PAL/USA module and restart Dolphin (v8 required).')
             raise DolphinUnavailable('Waiting for the SMG Archipelago module to finish loading')
         self.found = found[0]
         self.validate()
@@ -106,7 +106,8 @@ class DolphinBridge:
         # No game-owned progression, flags or arbitrary game addresses may be written.
         allowed = ((p.SYNC_REQUEST_OFFSET, 4), (p.SNAPSHOT_OFFSET, 68),
                    (p.INCOMING_WRITE_COUNT_OFFSET, 4), (p.INCOMING_EVENTS_OFFSET, p.EVENT_CAPACITY * 8),
-                   (16, 4), (p.DEATH_LINK_EPOCH_OFFSET, 8), (p.DEATH_LINK_TEXT_OFFSET, p.DEATH_LINK_TEXT_UNITS * 2))
+                   (16, 4), (p.DEATH_LINK_EPOCH_OFFSET, 8), (p.DEATH_LINK_TEXT_OFFSET, p.DEATH_LINK_TEXT_UNITS * 2),
+                   (p.HINT_EPOCH_OFFSET, p.MAILBOX_SIZE - p.HINT_EPOCH_OFFSET))
         if not any(start <= offset and offset + len(data) <= start + size for start, size in allowed):
             raise StateError('Attempted write outside client-owned mailbox fields')
         self.validate()

@@ -59,6 +59,7 @@ class SMGWorld(World):
             "death_link_group": self.options.death_link_group.value,
             "death_link_amnesty": self.options.death_link_amnesty.value,
             "required_stars": self.options.required_stars.value,
+            "hint_price": self.options.hint_price.value,
             "dome_unlock_mode": self.options.dome_unlock_mode.value,
         }
 

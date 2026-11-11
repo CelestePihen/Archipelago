@@ -62,6 +62,16 @@ class RequiredStars(Range):
     default = 3
 
 
+class HintPrice(Range):
+    """Star Bits paid to the Comet Luma for a new hint about an unchecked
+    location in an accessible SMG galaxy. Reading purchased hints is free.
+    """
+    display_name = "Hint Price"
+    range_start = 0
+    range_end = 9999
+    default = 100
+
+
 @dataclass
 class SMGOptions(PerGameCommonOptions):
     death_link: DeathLink
@@ -69,3 +79,4 @@ class SMGOptions(PerGameCommonOptions):
     death_link_amnesty: DeathLinkAmnesty
     dome_unlock_mode: DomeUnlockMode
     required_stars: RequiredStars
+    hint_price: HintPrice

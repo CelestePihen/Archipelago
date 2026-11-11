@@ -33,7 +33,7 @@ class PlanetOfTrialsTests(unittest.TestCase):
                 self.assertEqual(world.item_name_to_id["Planet of Trials Unlock"], 206)
                 self.assertEqual(world.fill_slot_data(), {"required_stars": 3, "dome_unlock_mode": mode,
                                                          "death_link": 0, "death_link_amnesty": 0,
-                                                         "death_link_group": ""})
+                                                         "death_link_group": "", "hint_price": 100})
                 self.assertEqual(len([loc for loc in multiworld.get_locations(1) if loc.address is not None]), 120)
 
     def test_gateway_tutorial_stays_free(self):

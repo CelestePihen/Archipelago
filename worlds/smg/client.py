@@ -15,7 +15,8 @@ from NetUtils import ClientStatus
 
 from .client_state import ClientLock, ProgressStore, StateError
 from .dolphin import DolphinBridge, DolphinUnavailable
-from .options import DeathLinkAmnesty, DeathLinkGroup
+from .options import DeathLinkAmnesty, DeathLinkGroup, HintPrice
+from .hints import HintShop
 
 
 class SMGCommandProcessor(ClientCommandProcessor):
@@ -95,6 +96,8 @@ class SMGContext(CommonContext):
         self.bridge = DolphinBridge(memory, profile) if memory is not None else None
         self.dolphin_status = 'Waiting for Archipelago connection'
         self.client_error = None
+        self.hint_price = HintPrice.default
+        self.hint_shop = None
         self.sent_checks = set()
         self.goal_sent = False
         self.history_ready = False
@@ -247,6 +250,11 @@ class SMGContext(CommonContext):
                 old_token = self.progress.token if self.progress else None
                 self.progress = ProgressStore(self.state_dir, self.server_seed_name, self.team, self.slot, args['slot_data'])
                 self.progress.save()
+                price = args['slot_data'].get('hint_price', HintPrice.default)
+                if type(price) is not int or not 0 <= price <= HintPrice.range_end:
+                    raise StateError('Invalid hint_price in slot data')
+                self.hint_price = price
+                self.hint_shop = HintShop(self.progress)
                 self.sent_checks = set(self.checked_locations)
                 self.goal_sent = False
                 self.history_ready = False
@@ -294,6 +302,10 @@ class SMGContext(CommonContext):
                 raise StateError('Install the SMG client dependency: dolphin-memory-engine>=1.3.1') from exc
             self.bridge = DolphinBridge(dolphin_memory_engine, self.profile)
         status = self.bridge.tick(self.progress)
+        if self.hint_shop:
+            socket = getattr(self.server, 'socket', None)
+            online = bool(socket and not socket.closed)
+            await self.hint_shop.tick(self, online)
         connected = bool(self.deathlink_enabled and self.server and self.slot is not None
                          and self.server.socket and not self.server.socket.closed)
         if self.deathlink_cancel_pending:
